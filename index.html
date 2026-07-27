@@ -57,6 +57,18 @@
           <div class="event-cta" aria-label="Registration coming soon for November 13 through 14, 2026">
             <span>Registration coming soon</span>
             <strong>November 13–14, 2026</strong>
+            <div class="countdown" aria-label="Countdown to Code Clash" aria-live="polite">
+              <small>Clash begins in</small>
+              <div class="countdown-units">
+                <p><b id="countdown-days">000</b><em>Days</em></p>
+                <i>:</i>
+                <p><b id="countdown-hours">00</b><em>Hrs</em></p>
+                <i>:</i>
+                <p><b id="countdown-minutes">00</b><em>Min</em></p>
+                <i>:</i>
+                <p><b id="countdown-seconds">00</b><em>Sec</em></p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -65,41 +77,135 @@
         <div class="narration-box">Meanwhile, at Towson...</div>
         <div>
           <p class="eyebrow">The origin story</p>
-          <h2>A weekend where ideas get superpowers.</h2>
+          <h2>Twenty-four hours to build something bold.</h2>
         </div>
-        <div class="speech-bubble">
-          <p>“Wait—do I need to be an expert?”</p>
-          <strong>Nope! Beginners belong here, too.</strong>
+        <div class="origin-right">
+          <div class="origin-copy">
+            <p>
+              Code/Clash is a 24-hour hackathon where Towson students come
+              together to explore, learn, and turn ambitious ideas into working
+              projects. Build alongside mentors and fellow creators, sharpen your
+              skills, and take a project from first sketch to final demo.
+            </p>
+            <p>
+              Whether you are a seasoned hacker or opening your editor for the
+              first time, there is a role and a team for you. Join us November
+              13–14, 2026, on the Towson University campus.
+            </p>
+          </div>
+          <div class="speech-bubble">
+            <p>“Wait—do I need to be an expert?”</p>
+            <strong>Nope! Beginners belong here, too.</strong>
+          </div>
         </div>
       </section>
 
       <section class="roles-section" id="roles">
-        <div class="section-heading reveal">
-          <p class="eyebrow">Choose your role</p>
-          <h2>Every team needs a hero.</h2>
-          <p>You can be one, mix a few, or discover yours during the weekend.</p>
+        <div class="assembly-topbar reveal">
+          <p class="eyebrow" id="assembly-eyebrow">Choose your role</p>
+          <div class="assembly-tabs" role="tablist" aria-label="Assembly views">
+            <button
+              id="roles-tab"
+              role="tab"
+              type="button"
+              aria-selected="true"
+              aria-controls="roles-panel"
+              tabindex="0"
+            >Roles</button>
+            <button
+              id="teams-tab"
+              role="tab"
+              type="button"
+              aria-selected="false"
+              aria-controls="teams-panel"
+              tabindex="-1"
+            >Assembled Teams <span>08</span></button>
+          </div>
         </div>
-        <div class="role-grid">
-          <article class="role-card role-build reveal">
-            <span class="role-number">01</span><span class="impact">BUILD!</span>
-            <h3>The Builder</h3><p>Turns wild concepts into working code.</p>
-          </article>
-          <article class="role-card role-design reveal">
-            <span class="role-number">02</span><span class="impact">DESIGN!</span>
-            <h3>The Designer</h3><p>Makes every interaction clear and memorable.</p>
-          </article>
-          <article class="role-card role-defend reveal">
-            <span class="role-number">03</span><span class="impact">DEFEND!</span>
-            <h3>The Defender</h3><p>Thinks securely and protects the project.</p>
-          </article>
-          <article class="role-card role-analyze reveal">
-            <span class="role-number">04</span><span class="impact">ANALYZE!</span>
-            <h3>The Analyst</h3><p>Finds the signal hiding inside the noise.</p>
-          </article>
-          <article class="role-card role-tell reveal">
-            <span class="role-number">05</span><span class="impact">TELL!</span>
-            <h3>The Storyteller</h3><p>Gives the idea a voice people remember.</p>
-          </article>
+        <div class="assembly-heading reveal">
+          <h2 id="assembly-title">Every team needs a hero.</h2>
+          <p id="assembly-copy">You can be one, mix a few, or discover yours during the weekend.</p>
+        </div>
+
+        <div class="assembly-views">
+          <div
+            class="assembly-panel is-active"
+            id="roles-panel"
+            role="tabpanel"
+            aria-labelledby="roles-tab"
+          >
+            <div class="role-grid">
+              <article class="role-card role-build reveal">
+                <span class="role-number">01</span><span class="impact">BUILD!</span>
+                <h3>The Builder</h3><p>Software, hardware, and implementation.</p>
+                <div class="role-avatar" aria-hidden="true"><i></i></div>
+              </article>
+              <article class="role-card role-defend reveal">
+                <span class="role-number">02</span><span class="impact">DEFEND!</span>
+                <h3>The Defender</h3><p>Security, privacy, and threat analysis.</p>
+                <div class="role-avatar" aria-hidden="true"><i></i></div>
+              </article>
+              <article class="role-card role-analyze reveal">
+                <span class="role-number">03</span><span class="impact">ANALYZE!</span>
+                <h3>The Analyst</h3><p>Data, research, and evaluation.</p>
+                <div class="role-avatar" aria-hidden="true"><i></i></div>
+              </article>
+              <article class="role-card role-design reveal">
+                <span class="role-number">04</span><span class="impact">DESIGN!</span>
+                <h3>The Designer</h3><p>UX, UI, and visual communication.</p>
+                <div class="role-avatar" aria-hidden="true"><i></i></div>
+              </article>
+              <article class="role-card role-strategist reveal">
+                <span class="role-number">05</span><span class="impact">STRATEGIZE!</span>
+                <h3>The Strategist</h3><p>Presentation, direction, storytelling, and impact.</p>
+                <div class="role-avatar" aria-hidden="true"><i></i></div>
+              </article>
+            </div>
+          </div>
+
+          <div
+            class="assembly-panel"
+            id="teams-panel"
+            role="tabpanel"
+            aria-labelledby="teams-tab"
+            aria-hidden="true"
+            inert
+          >
+            <div class="team-queue">
+              <article class="queue-card">
+                <div class="queue-card-top"><span>Team 001</span><strong>3/4</strong></div>
+                <h3>TigerStack</h3>
+                <div class="slot-icons" aria-label="Builder, Defender, and Analyst filled"><b>B</b><b>D</b><b>A</b><i>+</i></div>
+                <p><strong>Looking for a Designer</strong></p>
+                <small>Campus life · AI tools</small>
+                <em>1 Slot Open</em>
+              </article>
+              <article class="queue-card queue-card-full">
+                <div class="queue-card-top"><span>Team 002</span><strong>4/4</strong></div>
+                <h3>Gold Standard</h3>
+                <div class="slot-icons" aria-label="All four member slots filled"><b>B</b><b>D</b><b>A</b><b>S</b></div>
+                <p><strong>Ready to build</strong></p>
+                <small>Cybersecurity · Education</small>
+                <em>Full Team</em>
+              </article>
+              <article class="queue-card">
+                <div class="queue-card-top"><span>Team 003</span><strong>2/4</strong></div>
+                <h3>404 Found</h3>
+                <div class="slot-icons" aria-label="Builder and Strategist filled; two slots open"><b>B</b><b>S</b><i>+</i><i>+</i></div>
+                <p><strong>Seeking Defender + Analyst</strong></p>
+                <small>Accessibility · Civic tech</small>
+                <em>2 Slots Open</em>
+              </article>
+              <article class="queue-card queue-card-open">
+                <div class="queue-card-top"><span>Open Queue</span><strong>?</strong></div>
+                <h3>Find your crew</h3>
+                <div class="slot-icons" aria-label="Four open member slots"><i>+</i><i>+</i><i>+</i><i>+</i></div>
+                <p><strong>Solo participants welcome</strong></p>
+                <small>Match by roles and interests</small>
+                <em>Join Queue</em>
+              </article>
+            </div>
+          </div>
         </div>
       </section>
 
