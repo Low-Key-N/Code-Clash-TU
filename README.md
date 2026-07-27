@@ -34,7 +34,3 @@ This website is an early design and development prototype created to collect fee
 ## Credits
 
 Designed and developed by [Keyon Bigelow](https://keyonbigelow.com/) for the CODE/CLASH planning initiative.
-
----
-
-© 2026 CODE/CLASH. Concept subject to organizational and university approval.
