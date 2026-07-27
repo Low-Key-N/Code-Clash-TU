@@ -3,12 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="CLASH #001 — Towson's 24-hour student hackathon, November 13–14, 2026." />
-    <title>CLASH #001 | Towson Hackathon</title>
+    <meta name="description" content="Code/Clash issue 001 — Towson's accessible 24-hour student hackathon, November 13–14, 2026." />
+    <title>Code/Clash #001 | Towson Student Hackathon</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="script.js" defer></script>
   </head>
   <body>
+    <a class="skip-link" href="#top">Skip to main content</a>
     <div class="ambient-comic" aria-hidden="true">
       <span class="halftone-field halftone-one"></span>
       <span class="halftone-field halftone-two"></span>
@@ -20,7 +21,16 @@
       <a class="logo" href="#top" aria-label="Code Clash home">
         <img src="assets/code-clash-logo-corrected.png" alt="Code Clash" />
       </a>
-      <nav aria-label="Main navigation">
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="primary-nav"
+      >
+        <span aria-hidden="true"></span>
+        <strong>Menu</strong>
+      </button>
+      <nav id="primary-nav" aria-label="Main navigation">
         <a href="#roles">Roles</a>
         <a href="#schedule">Schedule</a>
         <a href="#team">Team</a>
@@ -33,17 +43,16 @@
       </nav>
     </header>
 
-    <main id="top">
+    <main id="top" tabindex="-1">
       <section class="comic-cover">
         <img
           class="cover-photo"
-          src="assets/towson-university-campus.jpeg"
-          alt="Aerial view of Towson University's campus in autumn"
+          src="assets/pixel-city-evening.png"
+          alt="Pixel-art city skyline viewed from a rooftop"
         />
         <div class="cover-shade"></div>
         <div class="cover-imprint" aria-label="Code Clash issue 001">
-          <span class="imprint-mark" aria-hidden="true">TU</span>
-          <strong>Code<br />Clash</strong>
+          <span class="imprint-mark" aria-hidden="true">Code/Clash</span>
           <span class="imprint-tower" aria-hidden="true">
             <img src="assets/code-clash-clock-tower.png" alt="" />
           </span>
@@ -57,7 +66,7 @@
           <div class="event-cta" aria-label="Registration coming soon for November 13 through 14, 2026">
             <span>Registration coming soon</span>
             <strong>November 13–14, 2026</strong>
-            <div class="countdown" aria-label="Countdown to Code Clash" aria-live="polite">
+            <div class="countdown" aria-label="Countdown to Code Clash" aria-live="off">
               <small>Clash begins in</small>
               <div class="countdown-units">
                 <p><b id="countdown-days">000</b><em>Days</em></p>
