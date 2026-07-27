@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="CLASH #001 — Towson's Fall 2026 student hackathon." />
+    <meta name="description" content="CLASH #001 — Towson's 24-hour student hackathon, November 13–14, 2026." />
     <title>CLASH #001 | Towson Hackathon</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="script.js" defer></script>
@@ -17,12 +17,18 @@
       <span class="floating-panel floating-panel-three"></span>
     </div>
     <header class="site-header">
-      <a class="logo" href="#top"><span>TH</span> Towson Hackathon</a>
+      <a class="logo" href="#top" aria-label="Code Clash home">
+        <img src="assets/code-clash-logo-corrected.png" alt="Code Clash" />
+      </a>
       <nav aria-label="Main navigation">
         <a href="#roles">Roles</a>
         <a href="#schedule">Schedule</a>
         <a href="#team">Team</a>
         <a href="#faq">FAQ</a>
+        <a href="#sponsors">Sponsors</a>
+        <a class="devpost-tab" href="https://devpost.com/" target="_blank" rel="noreferrer" hidden>
+          Devpost <span aria-hidden="true">↗</span>
+        </a>
         <a class="nav-cta" href="#register">Join the clash!</a>
       </nav>
     </header>
@@ -35,25 +41,28 @@
           alt="Aerial view of Towson University's campus in autumn"
         />
         <div class="cover-shade"></div>
-        <div class="issue-stamp">
-          <strong>CLASH</strong>
-          <span>No. 001</span>
+        <div class="cover-imprint" aria-label="Code Clash issue 001">
+          <span class="imprint-mark" aria-hidden="true">TU</span>
+          <strong>Code<br />Clash</strong>
+          <span class="imprint-tower" aria-hidden="true">
+            <img src="assets/code-clash-clock-tower.png" alt="" />
+          </span>
+          <small>No. 001</small>
         </div>
-        <p class="cover-date">Fall 2026 • Towson, MD • $0.00</p>
+        <p class="cover-date">Towson, MD · Free Entry</p>
         <div class="cover-copy">
-          <p class="kicker">Towson Hackathon presents</p>
-          <h1>Ideas<br />assemble!</h1>
-          <p>Five roles. One weekend. Whatever you bring, there is a place for it here.</p>
-          <div class="event-cta" aria-label="Registration coming soon for November 2026">
+          <p class="kicker">Bit Brothers Presents</p>
+          <h1>Code/Clash</h1>
+          <p class="cover-tagline">Ideas assemble!</p>
+          <div class="event-cta" aria-label="Registration coming soon for November 13 through 14, 2026">
             <span>Registration coming soon</span>
-            <strong>November 2026</strong>
+            <strong>November 13–14, 2026</strong>
           </div>
         </div>
-        <div class="burst-word" aria-hidden="true">CREATE!</div>
       </section>
 
       <section class="intro-panel reveal" id="about">
-        <div class="narration-box">Meanwhile, in Towson...</div>
+        <div class="narration-box">Meanwhile, at Towson...</div>
         <div>
           <p class="eyebrow">The origin story</p>
           <h2>A weekend where ideas get superpowers.</h2>
@@ -95,13 +104,13 @@
       </section>
 
       <section class="schedule-section reveal" id="schedule">
-        <div class="narration-box">24 hours later...</div>
+        <div class="narration-box">24 hours. That’s it.</div>
         <p class="eyebrow">The plot</p>
-        <h2>Three acts. One epic weekend.</h2>
+        <h2>Three acts. One 24-hour clash.</h2>
         <ol class="schedule">
-          <li><span>Act I</span><div><h3>The team assembles</h3><p>Check in, meet your crew, and choose a challenge.</p></div><b>FRIDAY</b></li>
-          <li><span>Act II</span><div><h3>The build begins</h3><p>Create, learn, test, and get backup from mentors.</p></div><b>SATURDAY</b></li>
-          <li><span>Act III</span><div><h3>The big reveal</h3><p>Demo what you made and celebrate every team.</p></div><b>SUNDAY</b></li>
+          <li><span>Act I</span><div><h3>The team assembles</h3><p>Check in, meet your crew, and choose a challenge.</p></div><b>FRI • NOV 13</b></li>
+          <li><span>Act II</span><div><h3>The overnight build</h3><p>Create, learn, test, and get backup from mentors.</p></div><b>OVERNIGHT</b></li>
+          <li><span>Act III</span><div><h3>The big reveal</h3><p>Demo what you made and celebrate every team.</p></div><b>SAT • NOV 14</b></li>
         </ol>
       </section>
 
@@ -182,7 +191,7 @@
 
       <section class="register-section reveal" id="register">
         <span class="mini-burst">NEXT ISSUE</span>
-        <p class="eyebrow">November 2026</p>
+        <p class="eyebrow">November 13–14, 2026</p>
         <h2>Registration coming soon.</h2>
         <p>Be the first to know when applications for CLASH #001 open.</p>
         <a class="comic-button comic-button-light" href="mailto:hello@example.com">Get event updates <span>→</span></a>
@@ -190,7 +199,9 @@
     </main>
 
     <footer>
-      <a class="footer-logo" href="#top"><span>TH</span> Towson Hackathon</a>
+      <a class="footer-logo" href="#top" aria-label="Code Clash home">
+        <img src="assets/code-clash-logo-corrected.png" alt="Code Clash" />
+      </a>
       <nav class="footer-nav" aria-label="Footer navigation">
         <a href="#roles">Roles</a>
         <a href="#schedule">Schedule</a>
@@ -199,8 +210,8 @@
         <a href="#sponsors">Sponsors</a>
       </nav>
       <div class="footer-meta">
-        <p>© <span id="year"></span> Towson Hackathon</p>
-        <p>CLASH #001 • November 2026</p>
+        <p>© <span id="year"></span> Code/Clash</p>
+        <p>CLASH #001 • November 13–14, 2026</p>
       </div>
     </footer>
   </body>
