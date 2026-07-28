@@ -2,6 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; media-src 'self'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Code/Clash issue 001 — Towson's accessible 24-hour student hackathon, November 13–14, 2026." />
     <title>Code/Clash #001 | Towson Student Hackathon</title>
@@ -36,7 +41,7 @@
         <a href="#team">Team</a>
         <a href="#faq">FAQ</a>
         <a href="#sponsors">Sponsors</a>
-        <a class="devpost-tab" href="https://devpost.com/" target="_blank" rel="noreferrer" hidden>
+        <a class="devpost-tab" href="https://devpost.com/" target="_blank" rel="noopener noreferrer" hidden>
           Devpost <span aria-hidden="true">↗</span>
         </a>
         <a class="nav-cta" href="#register">Join the clash!</a>

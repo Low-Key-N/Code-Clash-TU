@@ -38,7 +38,9 @@ function updateCountdown() {
   const remaining = eventStart.getTime() - Date.now();
 
   if (remaining <= 0) {
-    countdown.innerHTML = "<small>The clash is live!</small>";
+    const liveMessage = document.createElement("small");
+    liveMessage.textContent = "The clash is live!";
+    countdown.replaceChildren(liveMessage);
     return false;
   }
 
