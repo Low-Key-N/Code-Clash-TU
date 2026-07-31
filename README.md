@@ -1,5 +1,4 @@
 # CODE/CLASH
-
 **Ideas Assemble.**
 
 CODE/CLASH is a proposed 24-hour student hackathon presented by Bit Brothers at Towson University. The event is designed to bring students from different technical and creative backgrounds together to build, learn, collaborate, and turn ambitious ideas into working projects.
