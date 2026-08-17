@@ -175,3 +175,88 @@ function queueAmbientSceneUpdate() {
 window.addEventListener("scroll", queueAmbientSceneUpdate, { passive: true });
 window.addEventListener("resize", queueAmbientSceneUpdate);
 updateAmbientScene();
+
+const applicationForm = document.querySelector("#application-form");
+
+if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
+  applicationForm.hidden = false;
+  const statusMessage = document.querySelector("#application-status");
+  const submitButton = applicationForm.querySelector('button[type="submit"]');
+  const startedAt = applicationForm.elements.formStartedAt;
+  const allowedRoles = ["Builder", "Defender", "Analyst", "Designer", "Strategist"];
+  startedAt.value = String(Date.now());
+
+  function valuesFor(name) {
+    return [...applicationForm.querySelectorAll(`[name="${name}"]:checked`)].map((field) => field.value);
+  }
+
+  function updateTeamFields() {
+    const teamStatus = applicationForm.elements.teamStatus.value;
+    applicationForm.querySelectorAll("[data-team-status]").forEach((group) => {
+      const active = group.dataset.teamStatus === teamStatus;
+      group.hidden = !active;
+      group.querySelectorAll("input").forEach((input) => { input.disabled = !active; });
+    });
+  }
+
+  applicationForm.querySelectorAll('[name="teamStatus"]').forEach((field) => field.addEventListener("change", updateTeamFields));
+  updateTeamFields();
+
+  applicationForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    statusMessage.classList.remove("is-error");
+
+    if (!applicationForm.reportValidity()) return;
+    const desiredRoles = valuesFor("desiredRoles");
+    const rolesNeeded = valuesFor("rolesNeeded");
+    const teamStatus = applicationForm.elements.teamStatus.value;
+
+    if (!desiredRoles.length || desiredRoles.some((role) => !allowedRoles.includes(role))) {
+      statusMessage.textContent = "Choose at least one desired role.";
+      statusMessage.classList.add("is-error");
+      return;
+    }
+    if (teamStatus === "creating" && !rolesNeeded.length) {
+      statusMessage.textContent = "Choose at least one role your team needs.";
+      statusMessage.classList.add("is-error");
+      return;
+    }
+
+    const data = new FormData(applicationForm);
+    const payload = Object.fromEntries(data.entries());
+    payload.desiredRoles = desiredRoles;
+    payload.rolesNeeded = rolesNeeded;
+    ["agreeToRules", "confirmAccurate", "publicBoardConsent", "marketingConsent"].forEach((name) => {
+      payload[name] = data.has(name);
+    });
+
+    const config = window.SUPABASE_CONFIG;
+    if (!config?.url || !config?.publishableKey) {
+      statusMessage.textContent = "Applications are temporarily unavailable. Please try again later.";
+      statusMessage.classList.add("is-error");
+      return;
+    }
+
+    submitButton.disabled = true;
+    statusMessage.textContent = "Submitting…";
+    try {
+      const response = await fetch(`${config.url}/functions/v1/submit-application`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: config.publishableKey },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "We could not submit your application.");
+
+      applicationForm.reset();
+      startedAt.value = String(Date.now());
+      updateTeamFields();
+      statusMessage.textContent = "Application received! Check your school email for future updates.";
+    } catch (error) {
+      statusMessage.textContent = error.message || "We could not submit your application. Please try again.";
+      statusMessage.classList.add("is-error");
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
+}

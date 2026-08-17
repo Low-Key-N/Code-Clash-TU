@@ -352,8 +352,49 @@
         <span class="mini-burst">NEXT ISSUE</span>
         <p class="eyebrow">November 13–14, 2026</p>
         <h2>Registration coming soon.</h2>
-        <p>Be the first to know when applications for CLASH #001 open.</p>
-        <a class="comic-button comic-button-light" href="mailto:hello@example.com">Get event updates <span>→</span></a>
+        <p>Applications will open after the final event details are confirmed.</p>
+        <form class="application-form" id="application-form" novalidate hidden>
+          <div class="form-grid">
+            <label>Full name *<input name="fullName" type="text" autocomplete="name" minlength="2" maxlength="100" required /></label>
+            <label>School email address *<input name="schoolEmail" type="email" autocomplete="email" maxlength="254" required /></label>
+            <label>College or university *<input name="school" type="text" autocomplete="organization" minlength="2" maxlength="150" required /></label>
+            <label>Major/program *<input name="major" type="text" maxlength="120" required /></label>
+            <label>Graduation year *<input name="graduationYear" type="number" inputmode="numeric" min="2026" max="2035" required /></label>
+            <label>Experience level *<select name="experienceLevel" required><option value="">Choose one</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label>
+          </div>
+          <fieldset><legend>Desired role(s) *</legend><div class="choice-grid">
+            <label><input name="desiredRoles" type="checkbox" value="Builder" /> Builder</label><label><input name="desiredRoles" type="checkbox" value="Defender" /> Defender</label><label><input name="desiredRoles" type="checkbox" value="Analyst" /> Analyst</label><label><input name="desiredRoles" type="checkbox" value="Designer" /> Designer</label><label><input name="desiredRoles" type="checkbox" value="Strategist" /> Strategist</label>
+          </div></fieldset>
+          <label>Project interests *<textarea name="projectInterests" minlength="10" maxlength="1000" required></textarea></label>
+          <fieldset><legend>Team status *</legend><div class="choice-grid">
+            <label><input name="teamStatus" type="radio" value="solo" required /> Applying solo</label><label><input name="teamStatus" type="radio" value="creating" /> Creating a team</label><label><input name="teamStatus" type="radio" value="joining" /> Joining an existing team</label>
+          </div></fieldset>
+          <div class="conditional-fields" data-team-status="creating" hidden>
+            <label>Proposed team name *<input name="proposedTeamName" type="text" maxlength="80" /></label>
+            <fieldset><legend>Roles currently needed *</legend><div class="choice-grid">
+              <label><input name="rolesNeeded" type="checkbox" value="Builder" /> Builder</label><label><input name="rolesNeeded" type="checkbox" value="Defender" /> Defender</label><label><input name="rolesNeeded" type="checkbox" value="Analyst" /> Analyst</label><label><input name="rolesNeeded" type="checkbox" value="Designer" /> Designer</label><label><input name="rolesNeeded" type="checkbox" value="Strategist" /> Strategist</label>
+            </div></fieldset>
+          </div>
+          <div class="conditional-fields" data-team-status="joining" hidden><label>Team name or invite code *<input name="teamLookup" type="text" maxlength="80" /></label></div>
+          <div class="form-grid">
+            <label>Student organization affiliation<input name="studentOrganization" type="text" maxlength="150" placeholder="None" /></label>
+            <label>Phone number <span>(optional/private)</span><input name="phone" type="tel" autocomplete="tel" maxlength="30" /></label>
+            <label>Pronouns <span>(optional/private)</span><input name="pronouns" type="text" maxlength="50" /></label>
+            <label>Portfolio, GitHub, or LinkedIn URL<input name="portfolioUrl" type="url" inputmode="url" maxlength="500" placeholder="https://" /></label>
+          </div>
+          <label>Dietary restrictions <span>(optional/private)</span><textarea name="dietaryRestrictions" maxlength="500"></textarea></label>
+          <label>Accessibility accommodations <span>(optional/private)</span><textarea name="accessibilityAccommodations" maxlength="1000"></textarea></label>
+          <div class="form-agreements">
+            <label><input name="agreeToRules" type="checkbox" required /> I agree to the event rules and code of conduct. *</label>
+            <label><input name="confirmAccurate" type="checkbox" required /> I confirm that the submitted information is accurate. *</label>
+            <label><input name="publicBoardConsent" type="checkbox" /> You may display my first name and role on the public team board.</label>
+            <label><input name="marketingConsent" type="checkbox" /> I want future Bit Brothers/Sister Scripters updates.</label>
+          </div>
+          <div class="form-trap" aria-hidden="true"><label>Leave this field empty<input name="website" type="text" tabindex="-1" autocomplete="off" /></label></div>
+          <input name="formStartedAt" type="hidden" />
+          <button class="comic-button comic-button-light" type="submit">Submit application <span aria-hidden="true">→</span></button>
+          <p class="form-status" id="application-status" role="status" aria-live="polite"></p>
+        </form>
       </section>
     </main>
 

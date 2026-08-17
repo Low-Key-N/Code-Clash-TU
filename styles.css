@@ -1294,6 +1294,21 @@ h2 { margin-bottom: 20px; font-size: clamp(2.3rem, 5vw, 4.3rem); font-style: ita
 .register-section { position: relative; padding: 75px max(20px, calc((100vw - 1050px) / 2)); background-color: var(--tu-gold); background-image: radial-gradient(rgba(21,21,0,.28) 1px, transparent 1px); background-size: 9px 9px; border-block: 5px solid var(--ink); text-align: center; }
 .register-section h2 { max-width: 800px; margin-inline: auto; }
 .register-section > p:not(.eyebrow) { font-weight: 700; }
+.application-form { max-width: 900px; margin: 34px auto 0; padding: clamp(20px, 4vw, 38px); border: 4px solid var(--ink); background: var(--tu-white); box-shadow: 8px 8px 0 var(--ink); color: var(--ink); text-align: left; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.application-form label, .application-form legend { font-weight: 900; }
+.application-form label > span { font-size: .72rem; font-weight: 700; }
+.application-form input:not([type="checkbox"]):not([type="radio"]), .application-form select, .application-form textarea { width: 100%; margin-top: 7px; padding: 11px; border: 3px solid var(--ink); background: var(--tu-white); color: var(--ink); font: inherit; }
+.application-form textarea { min-height: 110px; resize: vertical; }
+.application-form fieldset { margin: 22px 0; padding: 14px; border: 3px solid var(--ink); }
+.choice-grid { display: flex; flex-wrap: wrap; gap: 12px 22px; margin-top: 8px; }
+.choice-grid label, .form-agreements label { display: flex; gap: 8px; align-items: flex-start; }
+.conditional-fields { margin: 18px 0; padding: 18px; border-left: 7px solid var(--tu-gold); background: var(--tu-glen-mist); }
+.form-agreements { display: grid; gap: 12px; margin: 22px 0; }
+.form-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.form-status { min-height: 1.5em; margin-top: 18px; font-weight: 900; }
+.form-status.is-error { color: #9d1717; }
+.application-form button[disabled] { cursor: wait; opacity: .65; }
 .mini-burst { display: inline-block; margin-bottom: 16px; padding: 6px 10px; border: 3px solid var(--ink); background: var(--tu-white); box-shadow: 3px 3px 0 var(--ink); font-size: .72rem; font-weight: 900; transform: rotate(-3deg); }
 .comic-button-light { background: var(--tu-white); }
 footer {
@@ -1476,6 +1491,7 @@ footer p { margin: 0; }
 }
 
 @media (max-width: 720px) {
+  .form-grid { grid-template-columns: 1fr; }
   html { scroll-padding-top: 76px; }
   .site-header { min-height: 64px; padding-inline: 12px; }
   .logo { width: 160px; height: 38px; padding: 0; }
