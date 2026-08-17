@@ -1,5 +1,16 @@
 document.querySelector("#year").textContent = new Date().getFullYear();
 
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+if (prefersReducedMotion.matches) document.body.classList.remove("site-loading");
+window.addEventListener("load", () => {
+  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  window.setTimeout(() => document.body.classList.remove("site-loading"), 1150);
+}, { once: true });
+
 const menuToggle = document.querySelector(".menu-toggle");
 const primaryNav = document.querySelector("#primary-nav");
 
@@ -125,7 +136,7 @@ assemblyTabs.forEach((tab, index) => {
 });
 
 const sceneSections = document.querySelectorAll(
-  ".comic-cover, #about, #roles, #schedule, #team, #faq, #sponsors, #register",
+  ".comic-cover, #about, #roles, #schedule, #team, #faq, #sponsors, #community-partners, #register",
 );
 
 let sceneUpdateQueued = false;

@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="styles.css" />
     <script src="script.js" defer></script>
   </head>
-  <body>
+  <body class="site-loading">
     <a class="skip-link" href="#top">Skip to main content</a>
     <div class="ambient-comic" aria-hidden="true">
       <span class="halftone-field halftone-one"></span>
@@ -41,6 +41,7 @@
         <a href="#team">Team</a>
         <a href="#faq">FAQ</a>
         <a href="#sponsors">Sponsors</a>
+        <a href="#community-partners">Community Partners</a>
         <a class="devpost-tab" href="https://devpost.com/" target="_blank" rel="noopener noreferrer" hidden>
           Devpost <span aria-hidden="true">↗</span>
         </a>
@@ -64,6 +65,15 @@
           <small>No. 001</small>
         </div>
         <p class="cover-date">Towson, MD · Free Entry</p>
+        <a
+          class="hero-partner"
+          href="https://involved.towson.edu/organization/bitbrothers"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View Bit Brothers on Towson Involved"
+        >
+          <img src="assets/bit-brothers-logo.jpeg" alt="Bit Brothers" />
+        </a>
         <div class="cover-copy">
           <p class="kicker">Bit Brothers Presents</p>
           <h1>Code/Clash</h1>
@@ -309,6 +319,34 @@
         <a class="sponsor-link" href="mailto:hello@example.com">Become a sponsor <span>→</span></a>
       </section>
 
+      <section class="community-partners-section reveal" id="community-partners">
+        <div class="community-partners-heading">
+          <div>
+            <p class="eyebrow">Stronger together</p>
+            <h2>Community partners.</h2>
+          </div>
+          <p>
+            Student organizations joining forces to connect creators, share
+            knowledge, and bring the Towson community together.
+          </p>
+        </div>
+        <div class="community-partner-grid" aria-label="Community partner organizations">
+          <article class="community-partner-card">
+            <img src="assets/sister-scripters-logo.jpg" alt="Sister Scripters" />
+            <div>
+              <h3>Sister Scripters</h3>
+              <p>Community partner</p>
+              <a
+                class="community-partner-link"
+                href="https://involved.towson.edu/organization/sisterscripters"
+                target="_blank"
+                rel="noopener noreferrer"
+              >View organization <span aria-hidden="true">↗</span></a>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section class="register-section reveal" id="register">
         <span class="mini-burst">NEXT ISSUE</span>
         <p class="eyebrow">November 13–14, 2026</p>
@@ -328,6 +366,7 @@
         <a href="#team">Team</a>
         <a href="#faq">FAQ</a>
         <a href="#sponsors">Sponsors</a>
+        <a href="#community-partners">Community Partners</a>
       </nav>
       <div class="footer-meta">
         <p>© <span id="year"></span> Code/Clash</p>
