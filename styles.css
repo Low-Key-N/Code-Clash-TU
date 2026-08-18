@@ -1492,6 +1492,9 @@ footer p { margin: 0; }
     padding: 10px 12px;
   }
   .site-header nav .nav-cta { justify-content: center; margin-top: 5px; }
+  .role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .role-card:nth-child(n) { grid-column: auto; min-height: 255px; transform: none; }
+  .role-card.role-strategist { grid-column: 1 / -1; }
 }
 
 @media (max-width: 720px) {
