@@ -292,16 +292,30 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
     return [...applicationForm.querySelectorAll(`[name="${name}"]:checked`)].map((field) => field.value);
   }
 
+  function syncJoinRoleOptions() {
+    const desiredRoles = valuesFor("desiredRoles");
+    const joinRole = applicationForm.elements.joinRole;
+    [...joinRole.options].forEach((option) => {
+      if (option.value) option.disabled = !desiredRoles.includes(option.value);
+    });
+    if (!desiredRoles.includes(joinRole.value)) joinRole.value = desiredRoles.length === 1 ? desiredRoles[0] : "";
+  }
+
   function updateTeamFields() {
     const teamStatus = applicationForm.elements.teamStatus.value;
     applicationForm.querySelectorAll("[data-team-status]").forEach((group) => {
       const active = group.dataset.teamStatus === teamStatus;
       group.hidden = !active;
-      group.querySelectorAll("input").forEach((input) => { input.disabled = !active; });
+      group.querySelectorAll("input, select, textarea").forEach((field) => { field.disabled = !active; });
     });
+    applicationForm.elements.proposedTeamName.required = teamStatus === "creating";
+    applicationForm.elements.teamLookup.required = teamStatus === "joining";
+    applicationForm.elements.joinRole.required = teamStatus === "joining";
+    syncJoinRoleOptions();
   }
 
   applicationForm.querySelectorAll('[name="teamStatus"]').forEach((field) => field.addEventListener("change", updateTeamFields));
+  applicationForm.querySelectorAll('[name="desiredRoles"]').forEach((field) => field.addEventListener("change", syncJoinRoleOptions));
   updateTeamFields();
 
   applicationForm.addEventListener("submit", async (event) => {
@@ -316,16 +330,19 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
     if (!desiredRoles.length || desiredRoles.some((role) => !allowedRoles.includes(role))) {
       statusMessage.textContent = "Choose at least one desired role.";
       statusMessage.classList.add("is-error");
+      applicationForm.querySelector('[name="desiredRoles"]').focus();
       return;
     }
     if (teamStatus === "creating" && !rolesNeeded.length) {
       statusMessage.textContent = "Choose at least one role your team needs.";
       statusMessage.classList.add("is-error");
+      applicationForm.querySelector('[name="rolesNeeded"]').focus();
       return;
     }
     if (teamStatus === "joining" && !desiredRoles.includes(applicationForm.elements.joinRole.value)) {
       statusMessage.textContent = "Your team role must also be selected under desired roles.";
       statusMessage.classList.add("is-error");
+      applicationForm.elements.joinRole.focus();
       return;
     }
 
