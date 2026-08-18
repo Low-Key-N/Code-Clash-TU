@@ -319,6 +319,7 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
 
     const data = new FormData(applicationForm);
     const payload = Object.fromEntries(data.entries());
+    payload.formElapsedMs = Date.now() - Number(startedAt.value);
     payload.desiredRoles = desiredRoles;
     payload.rolesNeeded = rolesNeeded;
     ["agreeToRules", "confirmAccurate", "publicBoardConsent", "marketingConsent"].forEach((name) => {

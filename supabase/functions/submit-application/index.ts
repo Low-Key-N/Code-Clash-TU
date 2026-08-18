@@ -54,8 +54,10 @@ Deno.serve(async (request) => {
 
   // A hidden field and a minimum completion time reject basic automated submissions.
   if (clean(body.website, 200)) return json(200, { ok: true }, origin);
-  const elapsed = Date.now() - Number(body.formStartedAt);
-  if (!Number.isFinite(elapsed) || elapsed < 5_000 || elapsed > 86_400_000) return json(400, { error: "Please reload the form and try again." }, origin);
+  const elapsed = Number(body.formElapsedMs);
+  if (!Number.isFinite(elapsed)) return json(400, { error: "Please reload the form and try again.", code: "FORM_TIME_INVALID" }, origin);
+  if (elapsed < 5_000) return json(400, { error: "Please take a moment to review the form before submitting.", code: "FORM_TOO_FAST" }, origin);
+  if (elapsed > 86_400_000) return json(400, { error: "This form has expired. Please reload the page and try again.", code: "FORM_EXPIRED" }, origin);
 
   const fullName = clean(body.fullName, 100);
   const schoolEmail = clean(body.schoolEmail, 254).toLowerCase();
@@ -92,7 +94,13 @@ Deno.serve(async (request) => {
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, secretKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const sourceHash = await hashSource(source);
+  let sourceHash: string;
+  try {
+    sourceHash = await hashSource(source);
+  } catch (error) {
+    console.error("Application rate-limit configuration failed", error instanceof Error ? error.message : "unknown error");
+    return json(503, { error: "Applications are temporarily unavailable." }, origin);
+  }
   const { data: allowed, error: rateError } = await supabase.rpc("consume_application_rate_limit", { request_source_hash: sourceHash });
   if (rateError) return json(503, { error: "Applications are temporarily unavailable." }, origin);
   if (!allowed) return json(429, { error: "Too many attempts. Please try again in an hour." }, origin);
