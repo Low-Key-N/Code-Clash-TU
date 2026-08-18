@@ -135,6 +135,95 @@ assemblyTabs.forEach((tab, index) => {
   });
 });
 
+const teamQueue = document.querySelector("#team-queue");
+const assembledTeamCount = document.querySelector("#assembled-team-count");
+const roleInitials = { Builder: "B", Defender: "D", Analyst: "A", Designer: "D", Strategist: "S" };
+
+function teamBoardState(title, detail) {
+  const state = document.createElement("div");
+  state.className = "team-queue-state";
+  const heading = document.createElement("strong");
+  heading.textContent = title;
+  const copy = document.createElement("span");
+  copy.textContent = detail;
+  state.append(heading, copy);
+  teamQueue.replaceChildren(state);
+}
+
+function renderPublicTeams(teams) {
+  assembledTeamCount.textContent = String(teams.length).padStart(2, "0");
+  if (!teams.length) {
+    teamBoardState("No teams published yet.", "Organizer-approved teams will appear here once assembly begins.");
+    return;
+  }
+
+  const cards = teams.map((team, index) => {
+    const card = document.createElement("article");
+    const members = Array.isArray(team.members) ? team.members : [];
+    const capacity = Math.max(2, Math.min(8, Number(team.capacity) || 4));
+    const openSlots = Math.max(0, capacity - members.length);
+    card.className = `queue-card${openSlots === 0 ? " queue-card-full" : ""}`;
+
+    const top = document.createElement("div");
+    top.className = "queue-card-top";
+    const number = document.createElement("span");
+    number.textContent = `Team ${String(index + 1).padStart(3, "0")}`;
+    const occupancy = document.createElement("strong");
+    occupancy.textContent = `${members.length}/${capacity}`;
+    top.append(number, occupancy);
+
+    const name = document.createElement("h3");
+    name.textContent = team.teamName;
+    const slots = document.createElement("div");
+    slots.className = "slot-icons";
+    slots.setAttribute("aria-label", `${members.length} of ${capacity} team slots filled`);
+    members.forEach((member) => {
+      const filled = document.createElement("b");
+      filled.textContent = roleInitials[member.role] || "?";
+      filled.title = `${member.firstName}: ${member.role}`;
+      slots.append(filled);
+    });
+    for (let slot = members.length; slot < capacity; slot += 1) {
+      const open = document.createElement("i");
+      open.textContent = "+";
+      slots.append(open);
+    }
+
+    const memberList = document.createElement("p");
+    memberList.className = "queue-members";
+    memberList.textContent = members.map((member) => `${member.firstName} — ${member.role}`).join(" · ") || "Team details coming soon";
+    const need = document.createElement("p");
+    const needText = document.createElement("strong");
+    needText.textContent = team.rolesNeeded?.length ? `Seeking ${team.rolesNeeded.join(" + ")}` : "Ready to build";
+    need.append(needText);
+    const interests = document.createElement("small");
+    interests.textContent = team.projectInterests || "Project interests coming soon";
+    const availability = document.createElement("em");
+    availability.textContent = openSlots ? `${openSlots} slot${openSlots === 1 ? "" : "s"} open` : "Full team";
+    card.append(top, name, slots, memberList, need, interests, availability);
+    return card;
+  });
+  teamQueue.replaceChildren(...cards);
+}
+
+async function loadPublicTeams() {
+  const config = window.SUPABASE_CONFIG;
+  if (!teamQueue || !assembledTeamCount || !config?.url) return;
+  try {
+    const response = await fetch(`${config.url}/functions/v1/list-public-teams`);
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !Array.isArray(result.teams)) throw new Error();
+    renderPublicTeams(result.teams);
+  } catch {
+    assembledTeamCount.textContent = "00";
+    teamBoardState("Team board unavailable.", "Please check back soon.");
+  } finally {
+    teamQueue.setAttribute("aria-busy", "false");
+  }
+}
+
+loadPublicTeams();
+
 const sceneSections = document.querySelectorAll(
   ".comic-cover, #about, #roles, #schedule, #team, #faq, #sponsors, #community-partners, #register",
 );

@@ -18,6 +18,11 @@ Only approved public fields should reach this website. Do not expose raw form
 responses, email addresses, phone numbers, student IDs, or private spreadsheet
 data.
 
+The team board must read only published rows from the organizer-curated
+`public_teams` projection through the read-only Edge Function. Direct browser
+access to application and team tables remains revoked. Publication requires an
+organizer review and the applicant's public-board consent.
+
 Render plain user-provided values with `textContent`. Do not pass them to
 `innerHTML`, `outerHTML`, or `insertAdjacentHTML`. If rich text ever becomes a
 requirement, sanitize it on the server and again with a maintained HTML

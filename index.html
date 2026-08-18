@@ -144,7 +144,7 @@
               aria-selected="false"
               aria-controls="teams-panel"
               tabindex="-1"
-            >Assembled Teams <span>08</span></button>
+            >Assembled Teams <span id="assembled-team-count">00</span></button>
           </div>
         </div>
         <div class="assembly-heading reveal">
@@ -196,39 +196,8 @@
             aria-hidden="true"
             inert
           >
-            <div class="team-queue">
-              <article class="queue-card">
-                <div class="queue-card-top"><span>Team 001</span><strong>3/4</strong></div>
-                <h3>TigerStack</h3>
-                <div class="slot-icons" aria-label="Builder, Defender, and Analyst filled"><b>B</b><b>D</b><b>A</b><i>+</i></div>
-                <p><strong>Looking for a Designer</strong></p>
-                <small>Campus life · AI tools</small>
-                <em>1 Slot Open</em>
-              </article>
-              <article class="queue-card queue-card-full">
-                <div class="queue-card-top"><span>Team 002</span><strong>4/4</strong></div>
-                <h3>Gold Standard</h3>
-                <div class="slot-icons" aria-label="All four member slots filled"><b>B</b><b>D</b><b>A</b><b>S</b></div>
-                <p><strong>Ready to build</strong></p>
-                <small>Cybersecurity · Education</small>
-                <em>Full Team</em>
-              </article>
-              <article class="queue-card">
-                <div class="queue-card-top"><span>Team 003</span><strong>2/4</strong></div>
-                <h3>404 Found</h3>
-                <div class="slot-icons" aria-label="Builder and Strategist filled; two slots open"><b>B</b><b>S</b><i>+</i><i>+</i></div>
-                <p><strong>Seeking Defender + Analyst</strong></p>
-                <small>Accessibility · Civic tech</small>
-                <em>2 Slots Open</em>
-              </article>
-              <article class="queue-card queue-card-open">
-                <div class="queue-card-top"><span>Open Queue</span><strong>?</strong></div>
-                <h3>Find your crew</h3>
-                <div class="slot-icons" aria-label="Four open member slots"><i>+</i><i>+</i><i>+</i><i>+</i></div>
-                <p><strong>Solo participants welcome</strong></p>
-                <small>Match by roles and interests</small>
-                <em>Join Queue</em>
-              </article>
+            <div class="team-queue" id="team-queue" aria-live="polite" aria-busy="true">
+              <div class="team-queue-state"><strong>Loading assembled teams…</strong><span>Only organizer-approved teams appear here.</span></div>
             </div>
           </div>
         </div>

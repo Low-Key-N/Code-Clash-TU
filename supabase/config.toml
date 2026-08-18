@@ -1,2 +1,5 @@
 [functions.submit-application]
 verify_jwt = false
+
+[functions.list-public-teams]
+verify_jwt = false
