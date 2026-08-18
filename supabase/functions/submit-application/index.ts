@@ -85,7 +85,10 @@ Deno.serve(async (request) => {
   }
 
   const source = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
+  const secretKeys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
+  const secretKey = secretKeys.default || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!secretKey) return json(503, { error: "Applications are temporarily unavailable." }, origin);
+  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, secretKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const sourceHash = await hashSource(source);
