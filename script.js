@@ -161,7 +161,8 @@ function renderPublicTeams(teams) {
     const card = document.createElement("article");
     const members = Array.isArray(team.members) ? team.members : [];
     const capacity = Math.max(2, Math.min(8, Number(team.capacity) || 4));
-    const openSlots = Math.max(0, capacity - members.length);
+    const occupiedSlots = Math.max(members.length, Math.min(capacity, Number(team.occupiedSlots) || members.length));
+    const openSlots = Math.max(0, capacity - occupiedSlots);
     card.className = `queue-card${openSlots === 0 ? " queue-card-full" : ""}`;
 
     const top = document.createElement("div");
@@ -169,21 +170,27 @@ function renderPublicTeams(teams) {
     const number = document.createElement("span");
     number.textContent = `Team ${String(index + 1).padStart(3, "0")}`;
     const occupancy = document.createElement("strong");
-    occupancy.textContent = `${members.length}/${capacity}`;
+    occupancy.textContent = `${occupiedSlots}/${capacity}`;
     top.append(number, occupancy);
 
     const name = document.createElement("h3");
     name.textContent = team.teamName;
     const slots = document.createElement("div");
     slots.className = "slot-icons";
-    slots.setAttribute("aria-label", `${members.length} of ${capacity} team slots filled`);
+    slots.setAttribute("aria-label", `${occupiedSlots} of ${capacity} team slots filled`);
     members.forEach((member) => {
       const filled = document.createElement("b");
       filled.textContent = roleInitials[member.role] || "?";
       filled.title = `${member.firstName}: ${member.role}`;
       slots.append(filled);
     });
-    for (let slot = members.length; slot < capacity; slot += 1) {
+    for (let slot = members.length; slot < occupiedSlots; slot += 1) {
+      const privateMember = document.createElement("b");
+      privateMember.textContent = "•";
+      privateMember.title = "Private team member";
+      slots.append(privateMember);
+    }
+    for (let slot = occupiedSlots; slot < capacity; slot += 1) {
       const open = document.createElement("i");
       open.textContent = "+";
       slots.append(open);
@@ -316,6 +323,11 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
       statusMessage.classList.add("is-error");
       return;
     }
+    if (teamStatus === "joining" && !desiredRoles.includes(applicationForm.elements.joinRole.value)) {
+      statusMessage.textContent = "Your team role must also be selected under desired roles.";
+      statusMessage.classList.add("is-error");
+      return;
+    }
 
     const data = new FormData(applicationForm);
     const payload = Object.fromEntries(data.entries());
@@ -347,9 +359,11 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
       applicationForm.reset();
       startedAt.value = String(Date.now());
       updateTeamFields();
-      statusMessage.textContent = testingMode
-        ? "Test submission received! This is not an official event application."
-        : "Application received! Check your school email for future updates.";
+      statusMessage.textContent = teamStatus === "joining"
+        ? "Your slot is reserved pending organizer approval."
+        : testingMode
+          ? "Test submission received! This is not an official event application."
+          : "Application received! Check your school email for future updates.";
     } catch (error) {
       statusMessage.textContent = error.message || "We could not submit your application. Please try again.";
       statusMessage.classList.add("is-error");

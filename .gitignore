@@ -8,3 +8,6 @@
 Thumbs.db
 .vscode/
 .idea/
+
+# Supabase CLI local link metadata
+supabase/.temp/

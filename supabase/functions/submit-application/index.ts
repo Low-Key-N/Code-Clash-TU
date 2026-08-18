@@ -71,13 +71,14 @@ Deno.serve(async (request) => {
   const proposedTeamName = optional(body.proposedTeamName, 80);
   const rolesNeeded = uniqueAllowedRoles(body.rolesNeeded);
   const teamLookup = optional(body.teamLookup, 80);
+  const joinRole = clean(body.joinRole, 20);
 
   const invalid = fullName.length < 2 || !isEmail(schoolEmail) || school.length < 2 || !major ||
     !Number.isInteger(graduationYear) || graduationYear < 2026 || graduationYear > 2035 ||
     !allowedExperience.includes(experienceLevel) || !desiredRoles.length || projectInterests.length < 10 ||
     !allowedTeamStatus.includes(teamStatus) || body.agreeToRules !== true || body.confirmAccurate !== true ||
     (teamStatus === "creating" && (!proposedTeamName || !rolesNeeded.length)) ||
-    (teamStatus === "joining" && !teamLookup);
+    (teamStatus === "joining" && (!teamLookup || !(allowedRoles as readonly string[]).includes(joinRole) || !desiredRoles.includes(joinRole)));
   if (invalid) return json(422, { error: "Check the required fields and try again." }, origin);
 
   const portfolioUrl = optional(body.portfolioUrl, 500);
@@ -106,19 +107,32 @@ Deno.serve(async (request) => {
   if (!allowed) return json(429, { error: "Too many attempts. Please try again in an hour." }, origin);
 
   const now = new Date().toISOString();
-  const { error } = await supabase.from("applications").insert({
+  const { data: application, error } = await supabase.from("applications").insert({
     full_name: fullName, school_email: schoolEmail, school, major, graduation_year: graduationYear,
     experience_level: experienceLevel, desired_roles: desiredRoles, project_interests: projectInterests,
     team_status: teamStatus, student_organization: clean(body.studentOrganization, 150) || "None",
     proposed_team_name: teamStatus === "creating" ? proposedTeamName : null,
-    roles_needed: teamStatus === "creating" ? rolesNeeded : [], team_lookup: teamStatus === "joining" ? teamLookup : null,
+    roles_needed: teamStatus === "creating" ? rolesNeeded : [], team_lookup: teamStatus === "joining" ? "Invite validated" : null,
     phone: optional(body.phone, 30), pronouns: optional(body.pronouns, 50),
     dietary_restrictions: optional(body.dietaryRestrictions, 500),
     accessibility_accommodations: optional(body.accessibilityAccommodations, 1000), portfolio_url: portfolioUrl,
     public_board_consent: body.publicBoardConsent === true, marketing_consent: body.marketingConsent === true,
     agreed_to_rules_at: now, confirmed_accurate_at: now,
-  });
+  }).select("id").single();
   if (error?.code === "23505") return json(409, { error: "An application already exists for this email address." }, origin);
   if (error) return json(503, { error: "We could not save your application. Please try again." }, origin);
+  if (teamStatus === "joining") {
+    const { data: joinRequestId, error: joinError } = await supabase.rpc("reserve_team_join", {
+      application_id: application.id, invite_code: teamLookup, requested_role: joinRole,
+    });
+    if (joinError) {
+      console.error("Team reservation failed", joinError.code, joinError.message);
+      await supabase.from("applications").delete().eq("id", application.id);
+      const message = joinError.message.includes("no available slots") ? "That team is currently full."
+        : "That invite code is invalid or inactive.";
+      return json(422, { error: message }, origin);
+    }
+    return json(201, { ok: true, joinRequestId, message: "Your team slot is reserved pending organizer approval." }, origin);
+  }
   return json(201, { ok: true }, origin);
 });

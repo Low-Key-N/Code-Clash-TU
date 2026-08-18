@@ -82,6 +82,48 @@ Do not copy email addresses, phone numbers, pronouns, dietary restrictions,
 accessibility accommodations, organization affiliations, or application notes
 into `public_teams`.
 
+## Team invite and joining workflow
+
+After publishing a creator's team, an organizer generates its private invite
+code in the SQL Editor. The plaintext code is returned only by this call and
+must be sent privately to the team creator:
+
+```sql
+select public.create_team_invite(
+  'PUBLIC_TEAM_ID'::uuid,
+  'CREATOR_APPLICATION_ID'::uuid
+);
+```
+
+Sharing the code represents the creator's approval for someone to request that
+team. A joining applicant must enter a valid active code and choose one of their
+desired roles. A successful submission creates a seven-day pending reservation;
+invalid codes and full teams are rejected.
+
+Organizers review pending requests with:
+
+```sql
+select r.id, pt.team_name, a.full_name, a.school_email, r.desired_role,
+       r.owner_approved_at, r.expires_at
+from public.team_join_requests r
+join public.applications a on a.id = r.application_id
+join public.public_teams pt on pt.id = r.public_team_id
+where r.status = 'pending'
+order by r.reserved_at;
+```
+
+Approve or reject using the request ID:
+
+```sql
+select public.approve_team_join_request('REQUEST_ID'::uuid, 'BB reviewer');
+select public.reject_team_join_request('REQUEST_ID'::uuid, 'BB reviewer');
+```
+
+Approval consumes the reserved slot, removes the filled role from
+`roles_needed`, and refreshes the public board automatically. If the applicant
+did not grant public-board consent, occupancy increases but their name and role
+remain private. Reissuing an invite invalidates the previous code.
+
 The service-role key belongs only in Supabase Edge Function secrets. Never add
 it to this repository or browser configuration.
 

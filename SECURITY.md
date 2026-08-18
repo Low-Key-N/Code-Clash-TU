@@ -23,6 +23,11 @@ The team board must read only published rows from the organizer-curated
 access to application and team tables remains revoked. Publication requires an
 organizer review and the applicant's public-board consent.
 
+Team invite codes are stored only as SHA-256 hashes. A valid code represents
+team-owner authorization to request membership, reserves capacity for seven
+days, and still requires organizer approval. Join requests and invite records
+have RLS enabled with no direct `anon` or `authenticated` privileges.
+
 Render plain user-provided values with `textContent`. Do not pass them to
 `innerHTML`, `outerHTML`, or `insertAdjacentHTML`. If rich text ever becomes a
 requirement, sanitize it on the server and again with a maintained HTML

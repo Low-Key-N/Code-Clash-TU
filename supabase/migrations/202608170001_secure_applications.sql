@@ -79,6 +79,7 @@ create table public.applications (
 alter table public.applications enable row level security;
 revoke all on public.applications from anon, authenticated;
 grant insert on public.applications to service_role;
+grant select (id) on public.applications to service_role;
 
 -- CASCADE removes the old participants FK, but not its column or rows.
 do $$
@@ -122,11 +123,13 @@ create table public.public_teams (
   member_first_names text[] not null default '{}', member_roles text[] not null default '{}', roles_needed text[] not null default '{}',
   approved_project_interests text not null default '' check (char_length(approved_project_interests) <= 300),
   capacity smallint not null default 4 check (capacity between 2 and 8),
+  occupied_slots smallint not null default 0,
   publication_status text not null default 'draft' check (publication_status in ('draft', 'published', 'archived')),
   reviewed_by text check (reviewed_by is null or char_length(reviewed_by) <= 120), published_at timestamptz,
   display_order integer not null default 0, updated_at timestamptz not null default now(),
   constraint public_team_member_shapes check (cardinality(member_first_names) = cardinality(member_roles)),
   constraint public_team_capacity check (cardinality(member_roles) <= capacity),
+  constraint public_team_occupied_slots check (occupied_slots between 0 and capacity),
   constraint public_team_member_names check (array_position(member_first_names, '') is null),
   constraint public_team_roles check (member_roles <@ array['Builder', 'Defender', 'Analyst', 'Designer', 'Strategist'] and roles_needed <@ array['Builder', 'Defender', 'Analyst', 'Designer', 'Strategist']),
   constraint published_team_review check (publication_status <> 'published' or (reviewed_by is not null and published_at is not null))

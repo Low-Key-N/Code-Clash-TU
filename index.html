@@ -345,7 +345,10 @@
               <label><input name="rolesNeeded" type="checkbox" value="Builder" /> Builder</label><label><input name="rolesNeeded" type="checkbox" value="Defender" /> Defender</label><label><input name="rolesNeeded" type="checkbox" value="Analyst" /> Analyst</label><label><input name="rolesNeeded" type="checkbox" value="Designer" /> Designer</label><label><input name="rolesNeeded" type="checkbox" value="Strategist" /> Strategist</label>
             </div></fieldset>
           </div>
-          <div class="conditional-fields" data-team-status="joining" hidden><label>Team name or invite code *<input name="teamLookup" type="text" maxlength="80" /></label></div>
+          <div class="conditional-fields" data-team-status="joining" hidden>
+            <label>Team invite code *<input name="teamLookup" type="text" maxlength="80" autocomplete="off" /></label>
+            <label>Role you want to fill *<select name="joinRole"><option value="">Choose one</option><option>Builder</option><option>Defender</option><option>Analyst</option><option>Designer</option><option>Strategist</option></select></label>
+          </div>
           <div class="form-grid">
             <label>Student organization affiliation<input name="studentOrganization" type="text" maxlength="150" placeholder="None" /></label>
             <label>Phone number <span>(optional/private)</span><input name="phone" type="tel" autocomplete="tel" maxlength="30" /></label>
