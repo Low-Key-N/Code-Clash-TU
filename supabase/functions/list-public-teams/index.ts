@@ -22,12 +22,15 @@ Deno.serve(async (request) => {
   const secretKeys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
   const secretKey =
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || secretKeys.default;
-  if (!secretKey) return response(503, { error: "Team board is temporarily unavailable." }, origin);
+  if (!secretKey) return response(503, { error: "Team board is temporarily unavailable.", code: "TEAM_BOARD_CONFIG" }, origin);
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, secretKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data, error } = await supabase.from("public_teams")
     .select("id,team_name,member_first_names,member_roles,roles_needed,approved_project_interests,capacity")
     .eq("publication_status", "published").order("display_order").order("published_at").limit(50);
-  if (error) return response(503, { error: "Team board is temporarily unavailable." }, origin);
+  if (error) {
+    console.error("public_teams query failed", error.code, error.message);
+    return response(503, { error: "Team board is temporarily unavailable.", code: "TEAM_BOARD_QUERY" }, origin);
+  }
 
   const teams = (data || []).map((team) => {
     const names = safeStrings(team.member_first_names, 8, 50);

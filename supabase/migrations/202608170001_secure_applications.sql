@@ -78,6 +78,7 @@ create table public.applications (
 );
 alter table public.applications enable row level security;
 revoke all on public.applications from anon, authenticated;
+grant insert on public.applications to service_role;
 
 -- CASCADE removes the old participants FK, but not its column or rows.
 do $$
@@ -132,6 +133,7 @@ create table public.public_teams (
 );
 alter table public.public_teams enable row level security;
 revoke all on public.public_teams from anon, authenticated;
+grant select on public.public_teams to service_role;
 
 create or replace function public.publish_public_team(team_id uuid, reviewer text)
 returns void language plpgsql security definer set search_path = public as $$
