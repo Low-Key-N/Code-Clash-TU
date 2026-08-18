@@ -320,9 +320,10 @@
       <section class="register-section reveal" id="register">
         <span class="mini-burst">NEXT ISSUE</span>
         <p class="eyebrow">November 13–14, 2026</p>
-        <h2>Registration coming soon.</h2>
-        <p>Applications will open after the final event details are confirmed.</p>
+        <h2 id="registration-title">Registration coming soon.</h2>
+        <p id="registration-copy">Applications will open after the final event details are confirmed.</p>
         <form class="application-form" id="application-form" novalidate hidden>
+          <p class="testing-notice" id="testing-notice" hidden><strong>TEST MODE:</strong> Submissions are for testing only and do not count as official event applications.</p>
           <div class="form-grid">
             <label>Full name *<input name="fullName" type="text" autocomplete="name" minlength="2" maxlength="100" required /></label>
             <label>School email address *<input name="schoolEmail" type="email" autocomplete="email" maxlength="254" required /></label>

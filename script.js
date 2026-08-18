@@ -269,6 +269,12 @@ const applicationForm = document.querySelector("#application-form");
 
 if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
   applicationForm.hidden = false;
+  const testingMode = window.SUPABASE_CONFIG.testingMode === true;
+  document.querySelector("#registration-title").textContent = testingMode ? "Test the CLASH #001 application." : "Apply for CLASH #001.";
+  document.querySelector("#registration-copy").textContent = testingMode
+    ? "Help us test the application experience before registration officially opens."
+    : "Tell us how you want to join the clash. Required fields are marked with an asterisk.";
+  document.querySelector("#testing-notice").hidden = !testingMode;
   const statusMessage = document.querySelector("#application-status");
   const submitButton = applicationForm.querySelector('button[type="submit"]');
   const startedAt = applicationForm.elements.formStartedAt;
@@ -340,7 +346,9 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
       applicationForm.reset();
       startedAt.value = String(Date.now());
       updateTeamFields();
-      statusMessage.textContent = "Application received! Check your school email for future updates.";
+      statusMessage.textContent = testingMode
+        ? "Test submission received! This is not an official event application."
+        : "Application received! Check your school email for future updates.";
     } catch (error) {
       statusMessage.textContent = error.message || "We could not submit your application. Please try again.";
       statusMessage.classList.add("is-error");
