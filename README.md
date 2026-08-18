@@ -64,6 +64,12 @@ Before setting `registrationOpen` to `true` in `supabase-config.js`:
    confirm that the `anon` and `authenticated` roles cannot read or write the
    `applications`, `application_rate_limits`, or `public_teams` tables.
 
+The browser flag is not the security boundary. Keep the hosted Edge Function
+secret `REGISTRATION_OPEN=false` while registration is closed. To open
+registration, set the hosted secret to `true` and then set the browser flag to
+`true`. Closing should happen in the reverse order: browser flag first, hosted
+secret second.
+
 ## Publishing assembled teams
 
 The public board reads only organizer-reviewed rows from `public_teams`; it

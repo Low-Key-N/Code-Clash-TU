@@ -46,6 +46,7 @@ Deno.serve(async (request) => {
   }
   if (request.method !== "POST") return json(405, { error: "Method not allowed." }, origin);
   if (!origin || !allowedOrigins.includes(origin)) return json(403, { error: "Origin not allowed." }, origin);
+  if (Deno.env.get("REGISTRATION_OPEN") !== "true") return json(403, { error: "Registration is currently closed." }, origin);
   if (Number(request.headers.get("content-length") || 0) > 16_384) return json(413, { error: "Request is too large." }, origin);
 
   let body: Record<string, unknown>;
