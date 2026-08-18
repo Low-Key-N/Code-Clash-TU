@@ -20,7 +20,8 @@ Deno.serve(async (request) => {
   if (origin && !allowedOrigins.includes(origin)) return response(403, { error: "Origin not allowed." }, origin);
 
   const secretKeys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
-  const secretKey = secretKeys.default || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const secretKey =
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || secretKeys.default;
   if (!secretKey) return response(503, { error: "Team board is temporarily unavailable." }, origin);
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, secretKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data, error } = await supabase.from("public_teams")
