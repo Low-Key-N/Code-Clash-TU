@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://ialynpqpmjwqzbjplpsi.supabase.co; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <title>Organizer HQ | Code/Clash</title>
+    <link rel="icon" type="image/png" href="../assets/code-clash-clock-tower.png" />
+    <link rel="stylesheet" href="admin.css" />
+    <script src="../supabase-config.js"></script>
+    <script src="admin.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#admin-main">Skip to dashboard</a>
+
+    <main id="admin-main">
+      <section class="login-shell" id="login-view" aria-labelledby="login-title">
+        <div class="login-brand">
+          <img src="../assets/code-clash-logo-corrected.png" alt="Code Clash" />
+          <p>Organizer command center</p>
+        </div>
+        <form class="login-card" id="login-form">
+          <p class="eyebrow">Restricted access</p>
+          <h1 id="login-title">Organizer sign in.</h1>
+          <p>Use the email and password associated with your approved organizer account.</p>
+          <label>Email address<input name="email" type="email" autocomplete="username" maxlength="254" required /></label>
+          <label>Password<input name="password" type="password" autocomplete="current-password" minlength="8" required /></label>
+          <button type="submit">Enter HQ <span aria-hidden="true">→</span></button>
+          <p class="form-status" id="login-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <div class="dashboard" id="dashboard-view" hidden>
+        <aside class="sidebar">
+          <a class="admin-logo" href="#overview" aria-label="Code Clash organizer dashboard">
+            <img src="../assets/code-clash-logo-corrected.png" alt="Code Clash" />
+          </a>
+          <p class="issue-label">Organizer HQ · Issue 001</p>
+          <nav aria-label="Dashboard navigation">
+            <button class="nav-button is-active" type="button" data-view="overview">Overview</button>
+            <button class="nav-button" type="button" data-view="applications">Applications</button>
+            <button class="nav-button" type="button" data-view="teams">Teams</button>
+          </nav>
+          <div class="account-card">
+            <span>Signed in as</span>
+            <strong id="organizer-email">Organizer</strong>
+            <button class="text-button" id="sign-out" type="button">Sign out</button>
+          </div>
+        </aside>
+
+        <div class="workspace">
+          <header class="workspace-header">
+            <div>
+              <p class="eyebrow" id="view-eyebrow">Command center</p>
+              <h1 id="view-title">Overview</h1>
+            </div>
+            <p class="global-status" id="global-status" role="status" aria-live="polite"></p>
+          </header>
+
+          <section class="dashboard-panel is-active" id="overview-panel" data-panel="overview">
+            <div class="metric-grid" id="metric-grid" aria-label="Application totals"></div>
+            <div class="overview-grid">
+              <article class="paper-card">
+                <p class="eyebrow">Review queue</p>
+                <h2>Applications need eyes.</h2>
+                <p>Open the application queue to review participant details and record decisions.</p>
+                <button class="comic-button" type="button" data-go="applications">Review applications</button>
+              </article>
+              <article class="paper-card gold-card">
+                <p class="eyebrow">Assembly status</p>
+                <h2 id="team-summary">Teams loading…</h2>
+                <p>Draft privately, review approved public fields, then publish to the public assembly board.</p>
+                <button class="comic-button light-button" type="button" data-go="teams">Manage teams</button>
+              </article>
+            </div>
+          </section>
+
+          <section class="dashboard-panel" id="applications-panel" data-panel="applications" hidden>
+            <div class="toolbar">
+              <label class="search-field">Search applications<input id="application-search" type="search" placeholder="Name or email" /></label>
+              <label>Status<select id="application-filter"><option value="">All statuses</option><option value="submitted">Submitted</option><option value="approved">Approved</option><option value="waitlisted">Waitlisted</option><option value="rejected">Rejected</option></select></label>
+              <button class="comic-button" id="export-csv" type="button">Export CSV</button>
+            </div>
+            <div class="table-shell">
+              <table>
+                <thead><tr><th>Applicant</th><th>School</th><th>Roles</th><th>Submitted</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+                <tbody id="applications-body"></tbody>
+              </table>
+              <div class="empty-state" id="applications-empty" hidden><strong>No applications found.</strong><span>Try changing the search or status filter.</span></div>
+            </div>
+            <div class="pagination"><button type="button" id="previous-page">← Previous</button><span id="page-label">Page 1</span><button type="button" id="next-page">Next →</button></div>
+          </section>
+
+          <section class="dashboard-panel" id="teams-panel" data-panel="teams" hidden>
+            <div class="section-actions"><p>Only reviewed first names and approved public details belong here.</p><button class="comic-button" id="new-team" type="button">Create team</button></div>
+            <div class="team-list" id="team-list"></div>
+            <div class="empty-state" id="teams-empty" hidden><strong>No teams yet.</strong><span>Create a private draft to start assembling.</span></div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <dialog id="application-dialog" aria-labelledby="application-dialog-title">
+      <div class="dialog-heading"><div><p class="eyebrow">Application file</p><h2 id="application-dialog-title">Applicant</h2></div><button class="close-button" type="button" data-close="application-dialog" aria-label="Close application details">×</button></div>
+      <div class="detail-grid" id="application-details"></div>
+      <form id="review-form">
+        <input name="id" type="hidden" />
+        <label>Decision<select name="status" required><option value="submitted">Submitted</option><option value="approved">Approved</option><option value="waitlisted">Waitlisted</option><option value="rejected">Rejected</option></select></label>
+        <label>Private organizer notes<textarea name="notes" maxlength="2000" rows="5"></textarea></label>
+        <div class="dialog-actions"><button class="comic-button" type="submit">Save review</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="team-dialog" aria-labelledby="team-dialog-title">
+      <div class="dialog-heading"><div><p class="eyebrow">Assembly editor</p><h2 id="team-dialog-title">Create team</h2></div><button class="close-button" type="button" data-close="team-dialog" aria-label="Close team editor">×</button></div>
+      <form id="team-form">
+        <input name="id" type="hidden" />
+        <label>Team name<input name="teamName" maxlength="80" required /></label>
+        <label>Approved project interests<textarea name="projectInterests" maxlength="300" rows="3"></textarea></label>
+        <div class="form-grid"><label>Capacity<input name="capacity" type="number" min="2" max="8" value="4" required /></label><label>Occupied slots<input name="occupiedSlots" type="number" min="0" max="8" value="0" required /></label><label>Display order<input name="displayOrder" type="number" value="0" required /></label></div>
+        <fieldset><legend>Public team members</legend><p class="field-help">Use only approved first names. Every member needs a role.</p><div id="member-editor"></div><button class="secondary-button" id="add-member" type="button">+ Add member</button></fieldset>
+        <fieldset><legend>Roles still needed</legend><div class="role-choices" id="roles-needed"></div></fieldset>
+        <div class="dialog-actions"><button class="comic-button" type="submit">Save team</button></div>
+      </form>
+    </dialog>
+  </body>
+</html>

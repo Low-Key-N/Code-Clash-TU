@@ -51,3 +51,18 @@ policy to the HTTP `Content-Security-Policy` header and add:
 Server-side registration or team APIs must additionally implement
 authentication where needed, schema validation, request-size limits, rate
 limiting, safe database queries, logging, and abuse monitoring.
+
+## Organizer dashboard
+
+The `/admin/` path is publicly discoverable because GitHub Pages is static. Its
+privacy boundary is the `organizer-admin` Edge Function, not the absence of a
+navigation link. The function validates the Supabase access token and then
+checks the authenticated user ID against `public.organizers` before constructing
+a service-role client. Invalid sessions receive 401 and authenticated users not
+on the organizer allowlist receive 403.
+
+The browser contains only the Supabase project URL and publishable key. Never
+add the service-role key to `supabase-config.js`, `admin/admin.js`, repository
+secrets, logs, screenshots, or CSV exports. Keep private-table grants revoked
+from `anon` and `authenticated`, and keep allowed origins exact rather than
+using a wildcard.

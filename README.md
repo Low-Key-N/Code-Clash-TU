@@ -5,7 +5,7 @@ CODE/CLASH is a proposed 24-hour student hackathon presented by Bit Brothers at 
 
 ## Live Preview
 
-[View the CODE/CLASH website](https://low-key-n.github.io/TowsonHackathonWebsite/)
+[View the CODE/CLASH website](https://codeclashtu.com/)
 
 > **Concept Preview:** CODE/CLASH is currently in the planning stage. Dates, venue, programming, registration, partnerships, and other event details are subject to approval and change.
 
@@ -29,6 +29,113 @@ CODE/CLASH is a proposed 24-hour student hackathon presented by Bit Brothers at 
 ## Project Status
 
 This website is an early design and development prototype created to collect feedback from the Bit Brothers hackathon planning team. Registration is not currently open.
+
+## Private organizer dashboard
+
+The static dashboard lives at `/admin/` and uses Supabase email/password Auth.
+Knowing the URL does not grant access: `organizer-admin` validates the access
+token with Supabase Auth, then independently requires the authenticated user ID
+to exist in `public.organizers`. Private table access remains revoked from
+`anon` and `authenticated`; only the Edge Function uses `service_role` after
+authorization succeeds.
+
+The dashboard supports application counts, searchable review queues, full
+application details, approve/waitlist/reject decisions, private notes, CSV
+export, and public-team create/edit/publish/archive/delete workflows. Organizer
+access cannot be changed through the dashboard.
+
+### Review and deploy the organizer dashboard
+
+Do not deploy blindly. First review:
+
+- `supabase/migrations/202608270001_organizer_admin_dashboard.sql`
+- `supabase/functions/organizer-admin/index.ts`
+- `admin/admin.js`
+
+Registration must stay closed during setup. Both controls should be false:
+
+```bash
+npx supabase secrets set REGISTRATION_OPEN=false
+```
+
+`supabase-config.js` must also contain `registrationOpen: false`.
+
+Link the production project and preview the migration:
+
+```bash
+npx supabase login
+npx supabase link --project-ref ialynpqpmjwqzbjplpsi
+npx supabase db push --dry-run
+```
+
+After reviewing the generated SQL, apply the migration:
+
+```bash
+npx supabase db push
+```
+
+Set exact production and local-development origins. The local origin below is
+used with `python -m http.server 8000`; do not use `*`:
+
+```bash
+npx supabase secrets set ALLOWED_ORIGINS=https://codeclashtu.com,http://localhost:8000
+```
+
+Deploy only the protected function. JWT gateway verification is disabled so
+the function can return controlled 401/403 responses; the function itself
+calls Supabase Auth to validate every JWT before checking `public.organizers`:
+
+```bash
+npx supabase functions deploy organizer-admin --no-verify-jwt
+```
+
+### Create or approve an organizer
+
+Create the account in **Supabase Dashboard → Authentication → Users** using an
+email/password flow. Then, in the SQL Editor, add that exact Auth user to the
+existing organizer allowlist:
+
+```sql
+insert into public.organizers (id)
+select id from auth.users
+where lower(email) = lower('organizer@example.com')
+on conflict (id) do nothing;
+```
+
+Do not put organizer passwords, access tokens, or the service-role key in this
+repository. Remove access only through the Supabase SQL Editor after confirming
+that another organizer remains:
+
+```sql
+delete from public.organizers
+where id = (select id from auth.users where lower(email) = lower('former-organizer@example.com'));
+```
+
+### Local and security testing
+
+Serve the repository instead of opening the HTML directly:
+
+```bash
+python -m http.server 8000
+```
+
+Then visit `http://localhost:8000/admin/` and verify, in order:
+
+1. A valid organizer can sign in and restore a refreshed session.
+2. Incorrect credentials receive an authentication error.
+3. A valid Auth user absent from `public.organizers` receives HTTP 403.
+4. A missing, expired, or altered token receives HTTP 401.
+5. An origin outside `ALLOWED_ORIGINS` receives HTTP 403, including preflight.
+6. Application search, details, each review status, and private notes work.
+7. CSV cells beginning with spreadsheet formulas are escaped on export.
+8. A team can be created, edited, published, archived, and deleted only after
+   the applicable confirmation prompt.
+9. The public site returns only published fields from `list-public-teams` and
+   never exposes email, phone, accommodations, dietary, or organizer-note data.
+10. Direct REST reads of private tables with the publishable key remain denied.
+
+After deployment, inspect Edge Function logs for authorization or database
+errors without logging tokens or private application bodies.
 
 ## Secure application deployment
 
