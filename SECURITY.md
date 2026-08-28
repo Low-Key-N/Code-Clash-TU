@@ -28,6 +28,12 @@ team-owner authorization to request membership, reserves capacity for seven
 days, and still requires organizer approval. Join requests and invite records
 have RLS enabled with no direct `anon` or `authenticated` privileges.
 
+For organizer retrieval, the current plaintext invite code is also attached to
+the private `applications` row after approval. It is available only through the
+organizer-authorized Edge Function, is never returned by the public team API,
+and is intentionally omitted from CSV exports. Treat it as a private team
+credential and send it only to the approved team owner.
+
 Render plain user-provided values with `textContent`. Do not pass them to
 `innerHTML`, `outerHTML`, or `insertAdjacentHTML`. If rich text ever becomes a
 requirement, sanitize it on the server and again with a maintained HTML
@@ -57,9 +63,13 @@ limiting, safe database queries, logging, and abuse monitoring.
 The `/admin/` path is publicly discoverable because GitHub Pages is static. Its
 privacy boundary is the `organizer-admin` Edge Function, not the absence of a
 navigation link. The function validates the Supabase access token and then
-checks the authenticated user ID against `public.organizers` before constructing
+checks the authenticated user ID against `public.organizers.user_id` before constructing
 a service-role client. Invalid sessions receive 401 and authenticated users not
 on the organizer allowlist receive 403.
+
+Dashboard login uses Supabase email/password authentication. The UUID in
+`public.organizers.user_id` is an identifier, not a credential, and is never
+accepted as proof of identity.
 
 The browser contains only the Supabase project URL and publishable key. Never
 add the service-role key to `supabase-config.js`, `admin/admin.js`, repository

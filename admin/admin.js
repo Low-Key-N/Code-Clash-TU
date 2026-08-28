@@ -172,6 +172,7 @@ const detailLabels = {
   team_lookup: "Team lookup", phone: "Phone", pronouns: "Pronouns", dietary_restrictions: "Dietary restrictions",
   accessibility_accommodations: "Accessibility accommodations", portfolio_url: "Portfolio URL",
   public_board_consent: "Public board consent", marketing_consent: "Marketing consent", reviewed_at: "Reviewed",
+  organizer_team_invite_code: "Team invite code (private)",
 };
 const wideDetails = new Set(["project_interests", "dietary_restrictions", "accessibility_accommodations"]);
 
@@ -185,10 +186,11 @@ function detailValue(key, value) {
 async function openApplication(id) {
   setStatus(globalStatus, "Opening application…");
   try {
-    const { application } = await adminRequest("applicationDetail", { id });
+    const { application, joinRequest } = await adminRequest("applicationDetail", { id });
     document.querySelector("#application-dialog-title").textContent = application.full_name;
     const details = document.querySelector("#application-details"); details.replaceChildren();
     Object.entries(detailLabels).forEach(([key, label]) => {
+      if (key === "organizer_team_invite_code" && application.team_status !== "creating") return;
       const item = element("dl", `detail-item${wideDetails.has(key) ? " wide" : ""}`);
       item.append(element("dt", "", label), element("dd", "", detailValue(key, application[key])));
       details.append(item);
@@ -196,9 +198,25 @@ async function openApplication(id) {
     reviewForm.elements.id.value = application.id;
     reviewForm.elements.status.value = application.application_status;
     reviewForm.elements.notes.value = application.organizer_notes || "";
+    renderJoinRequest(joinRequest);
     applicationDialog.showModal();
     setStatus(globalStatus);
   } catch (error) { handleRequestError(error); }
+}
+
+function renderJoinRequest(joinRequest) {
+  const panel = document.querySelector("#join-review");
+  panel.hidden = !joinRequest;
+  if (!joinRequest) return;
+  document.querySelector("#join-request-id").value = joinRequest.id;
+  document.querySelector("#join-review-title").textContent = `${joinRequest.status} join request`;
+  const team = joinRequest.team || {};
+  const details = document.querySelector("#join-request-details");
+  details.replaceChildren();
+  [["Requested team", team.team_name || "Unavailable"], ["Requested role", joinRequest.desired_role], ["Status", joinRequest.status], ["Reserved", formatDate(joinRequest.reserved_at)], ["Expires", formatDate(joinRequest.expires_at)], ["Team capacity", team.capacity ? `${team.occupied_slots}/${team.capacity}` : "—"]].forEach(([label, value]) => {
+    const item = element("dl", "detail-item"); item.append(element("dt", "", label), element("dd", "", value)); details.append(item);
+  });
+  document.querySelector("#join-request-actions").hidden = joinRequest.status !== "pending";
 }
 
 function teamCard(team) {
@@ -288,14 +306,15 @@ function switchView(view) {
 }
 
 async function bootstrap() {
-  showDashboard(); setStatus(globalStatus, "Verifying organizer access…");
+  setStatus(loginStatus, "Verifying organizer access…");
   try {
     const result = await adminRequest("bootstrap");
     state.teams = result.teams;
     document.querySelector("#organizer-email").textContent = result.organizer.email;
     renderOverview(result.counts); renderTeams();
+    showDashboard();
     switchView(["overview", "applications", "teams"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview");
-    setStatus(globalStatus);
+    setStatus(loginStatus);
   } catch (error) {
     storeSession(null);
     showLogin(error.message, true);
@@ -333,10 +352,49 @@ applicationsBody.addEventListener("click", (event) => { const button = event.tar
 
 reviewForm.addEventListener("submit", async (event) => {
   event.preventDefault(); const button = reviewForm.querySelector('button[type="submit"]'); setBusy(button, true, "Saving…");
-  try { const result = await adminRequest("updateApplication", { id: reviewForm.elements.id.value, status: reviewForm.elements.status.value, notes: reviewForm.elements.notes.value }); applicationDialog.close(); setStatus(globalStatus, result.message); await loadApplications(); const fresh = await adminRequest("bootstrap"); state.teams = fresh.teams; renderOverview(fresh.counts); renderTeams(); }
+  try {
+    const result = await adminRequest("updateApplication", { id: reviewForm.elements.id.value, status: reviewForm.elements.status.value, notes: reviewForm.elements.notes.value });
+    applicationDialog.close();
+    const inviteMessage = result.inviteCode ? ` Invite code: ${result.inviteCode}` : "";
+    const successMessage = `${result.message}${inviteMessage}`;
+    await loadApplications(); const fresh = await adminRequest("bootstrap"); state.teams = fresh.teams; renderOverview(fresh.counts); renderTeams();
+    setStatus(globalStatus, successMessage);
+  }
   catch (error) { handleRequestError(error); }
   finally { setBusy(button, false); }
 });
+
+document.querySelector("#delete-application").addEventListener("click", async (event) => {
+  const id = reviewForm.elements.id.value;
+  const applicant = document.querySelector("#application-dialog-title").textContent;
+  if (!confirm(`Delete the application for ${applicant}? Associated invite and join-request records will also be removed. This cannot be undone.`)) return;
+  const button = event.currentTarget; setBusy(button, true, "Deleting…");
+  try {
+    const result = await adminRequest("deleteApplication", { id, confirmation: "DELETE" });
+    applicationDialog.close(); state.page = 1;
+    await loadApplications(); const fresh = await adminRequest("bootstrap"); state.teams = fresh.teams; renderOverview(fresh.counts); renderTeams();
+    setStatus(globalStatus, result.message);
+  } catch (error) { handleRequestError(error); }
+  finally { setBusy(button, false); }
+});
+
+async function reviewJoinRequest(decision, button) {
+  const requestId = document.querySelector("#join-request-id").value;
+  const applicant = document.querySelector("#application-dialog-title").textContent;
+  const verb = decision === "approve" ? "add" : "reject";
+  if (!confirm(`${verb === "add" ? "Add" : "Reject"} ${applicant}${verb === "add" ? " to the requested team" : "’s team join request"}?`)) return;
+  setBusy(button, true, decision === "approve" ? "Adding…" : "Rejecting…");
+  try {
+    const result = await adminRequest(decision === "approve" ? "approveJoinRequest" : "rejectJoinRequest", { requestId });
+    applicationDialog.close();
+    await loadApplications(); const fresh = await adminRequest("bootstrap"); state.teams = fresh.teams; renderOverview(fresh.counts); renderTeams();
+    setStatus(globalStatus, result.message);
+  } catch (error) { handleRequestError(error); }
+  finally { setBusy(button, false); }
+}
+
+document.querySelector("#approve-join-request").addEventListener("click", (event) => reviewJoinRequest("approve", event.currentTarget));
+document.querySelector("#reject-join-request").addEventListener("click", (event) => reviewJoinRequest("reject", event.currentTarget));
 
 document.querySelector("#export-csv").addEventListener("click", (event) => exportCsv(event.currentTarget));
 document.querySelector("#new-team").addEventListener("click", () => openTeam());

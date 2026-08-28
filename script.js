@@ -1,5 +1,3 @@
-document.querySelector("#year").textContent = new Date().getFullYear();
-
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 window.scrollTo({ top: 0, left: 0, behavior: "instant" });
 
@@ -285,8 +283,17 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
   const statusMessage = document.querySelector("#application-status");
   const submitButton = applicationForm.querySelector('button[type="submit"]');
   const startedAt = applicationForm.elements.formStartedAt;
+  const projectInterests = applicationForm.elements.projectInterests;
   const allowedRoles = ["Builder", "Defender", "Analyst", "Designer", "Strategist"];
   startedAt.value = String(Date.now());
+
+  function validateProjectInterests() {
+    const length = projectInterests.value.trim().length;
+    projectInterests.setCustomValidity(length > 0 && length < 10 ? "Please describe your project interests using at least 10 characters." : "");
+  }
+
+  projectInterests.addEventListener("input", validateProjectInterests);
+  validateProjectInterests();
 
   function valuesFor(name) {
     return [...applicationForm.querySelectorAll(`[name="${name}"]:checked`)].map((field) => field.value);
@@ -375,6 +382,7 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
 
       applicationForm.reset();
       startedAt.value = String(Date.now());
+      validateProjectInterests();
       updateTeamFields();
       statusMessage.textContent = teamStatus === "joining"
         ? "Your slot is reserved pending organizer approval."

@@ -773,12 +773,9 @@ nav a { font-size: .8rem; font-weight: 900; text-decoration: none; text-transfor
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(118deg, rgba(255,255,255,.25) 0%, rgba(255,255,255,.12) 21%, transparent 43%),
-    linear-gradient(118deg, transparent 51%, rgba(255,255,255,.075) 58%, transparent 68%),
-    radial-gradient(ellipse at 76% 4%, rgba(255,255,255,.2), transparent 40%);
+  background: linear-gradient(132deg, transparent 0 76%, rgba(255,255,255,.13) 76% 82%, transparent 82% 100%);
   mix-blend-mode: screen;
-  opacity: .9;
+  opacity: .62;
 }
 .cover-imprint {
   position: absolute;
@@ -879,7 +876,7 @@ nav a { font-size: .8rem; font-weight: 900; text-decoration: none; text-transfor
 .event-cta > a:active {
   border-color: var(--tu-white);
   outline: 0;
-  box-shadow: 0 0 0 4px rgba(255,255,255,.42), 0 0 18px rgba(255,255,255,.35);
+  box-shadow: 0 0 0 4px rgba(255,255,255,.88);
 }
 .event-cta strong { padding-bottom: 5px; border-bottom: 4px solid var(--tu-gold); color: var(--tu-white); font-size: 1.3rem; letter-spacing: .04em; text-transform: uppercase; }
 .countdown {
@@ -1341,6 +1338,7 @@ h2 { margin-bottom: 20px; font-size: clamp(2.3rem, 5vw, 4.3rem); font-style: ita
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .application-form label, .application-form legend { font-weight: 900; }
 .application-form label > span { font-size: .72rem; font-weight: 700; }
+.application-form .field-help { display: block; margin-top: 6px; color: var(--tu-graphite); font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; line-height: 1.4; text-transform: none; }
 .application-form input:not([type="checkbox"]):not([type="radio"]), .application-form select, .application-form textarea { width: 100%; margin-top: 7px; padding: 11px; border: 3px solid var(--ink); background: var(--tu-white); color: var(--ink); font: inherit; }
 .application-form textarea { min-height: 110px; resize: vertical; }
 .application-form fieldset { margin: 22px 0; padding: 14px; border: 3px solid var(--ink); }
@@ -1386,6 +1384,7 @@ footer p { margin: 0; }
 .footer-logo img { width: 236px; height: 88px; max-width: none; object-fit: contain; }
 .footer-nav { display: flex; gap: 22px; }
 .footer-nav a { color: var(--tu-white); text-decoration: none; }
+.footer-nav .footer-social { color: var(--tu-gold); font-size: .68rem; letter-spacing: .04em; }
 .footer-meta { grid-column: 1 / -1; display: flex; justify-content: space-between; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.35); color: var(--tu-glen-mist); }
 
 .reveal { opacity: 0; transform: translateY(35px); transition: opacity .55s ease, transform .55s ease; }

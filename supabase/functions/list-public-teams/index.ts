@@ -5,7 +5,7 @@ const allowedOrigins = (Deno.env.get("ALLOWED_ORIGINS") || "https://low-key-n.gi
   .split(",").map((origin) => origin.trim());
 
 function response(status: number, body: object, origin: string | null) {
-  const headers: Record<string, string> = { "Content-Type": "application/json", "Cache-Control": "public, max-age=60", "Vary": "Origin" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Origin" };
   if (origin && allowedOrigins.includes(origin)) headers["Access-Control-Allow-Origin"] = origin;
   return new Response(JSON.stringify(body), { status, headers });
 }

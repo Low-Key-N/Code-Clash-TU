@@ -35,14 +35,32 @@ This website is an early design and development prototype created to collect fee
 The static dashboard lives at `/admin/` and uses Supabase email/password Auth.
 Knowing the URL does not grant access: `organizer-admin` validates the access
 token with Supabase Auth, then independently requires the authenticated user ID
-to exist in `public.organizers`. Private table access remains revoked from
+to exist as `public.organizers.user_id`. The login email and verified identity
+belong to the linked `auth.users` row; they are intentionally not duplicated in the
+organizer profile table. Private table access remains revoked from
 `anon` and `authenticated`; only the Edge Function uses `service_role` after
 authorization succeeds.
 
+The service role has a narrow column-level grant on
+`public.organizers(user_id, display_name)` so the Edge Function can perform the
+allowlist lookup. Browser roles have no direct access to that table.
+
 The dashboard supports application counts, searchable review queues, full
-application details, approve/waitlist/reject decisions, private notes, CSV
-export, and public-team create/edit/publish/archive/delete workflows. Organizer
+application details, approve/waitlist/reject decisions, confirmed application
+deletion, private notes, CSV export, and public-team create/edit/publish/archive/delete workflows. Approving an application marked `creating`
+automatically creates a private draft team and owner invite code. Organizer
 access cannot be changed through the dashboard.
+
+Applications marked `joining` create a pending team reservation after their
+invite is validated. The application detail view shows its requested team,
+role, expiration, and capacity. Approving the join request adds the participant
+to the team; rejecting it releases the pending request without exposing the
+invite code.
+
+The current owner invite code remains visible on the private application detail
+record so an organizer can retrieve it later. It is excluded from public APIs
+and CSV exports. Approving a legacy creating-team application with only a hashed
+invite rotates that invite once and stores the replacement code privately.
 
 ### Review and deploy the organizer dashboard
 
@@ -52,13 +70,16 @@ Do not deploy blindly. First review:
 - `supabase/functions/organizer-admin/index.ts`
 - `admin/admin.js`
 
-Registration must stay closed during setup. Both controls should be false:
+The public site is currently configured for open registration. The protected
+submission function must use the matching hosted control:
 
 ```bash
-npx supabase secrets set REGISTRATION_OPEN=false
+npx supabase secrets set REGISTRATION_OPEN=true
 ```
 
-`supabase-config.js` must also contain `registrationOpen: false`.
+`supabase-config.js` must also contain `registrationOpen: true`. To close
+registration safely, switch the browser flag to `false` first and then set the
+hosted secret to `false`.
 
 Link the production project and preview the migration:
 
@@ -91,15 +112,16 @@ npx supabase functions deploy organizer-admin --no-verify-jwt
 
 ### Create or approve an organizer
 
-Create the account in **Supabase Dashboard → Authentication → Users** using an
-email/password flow. Then, in the SQL Editor, add that exact Auth user to the
+Create the account in **Supabase Dashboard → Authentication → Users** with a
+confirmed email and password. Then, in the SQL Editor, add that exact Auth user to the
 existing organizer allowlist:
 
 ```sql
-insert into public.organizers (id)
-select id from auth.users
+insert into public.organizers (user_id, display_name)
+select id, coalesce(nullif(raw_user_meta_data ->> 'display_name', ''), split_part(email, '@', 1))
+from auth.users
 where lower(email) = lower('organizer@example.com')
-on conflict (id) do nothing;
+on conflict (user_id) do nothing;
 ```
 
 Do not put organizer passwords, access tokens, or the service-role key in this
@@ -108,7 +130,7 @@ that another organizer remains:
 
 ```sql
 delete from public.organizers
-where id = (select id from auth.users where lower(email) = lower('former-organizer@example.com'));
+where user_id = (select id from auth.users where lower(email) = lower('former-organizer@example.com'));
 ```
 
 ### Local and security testing
@@ -122,7 +144,7 @@ python -m http.server 8000
 Then visit `http://localhost:8000/admin/` and verify, in order:
 
 1. A valid organizer can sign in and restore a refreshed session.
-2. Incorrect credentials receive an authentication error.
+2. Incorrect credentials receive an authentication error without sending email.
 3. A valid Auth user absent from `public.organizers` receives HTTP 403.
 4. A missing, expired, or altered token receives HTTP 401.
 5. An origin outside `ALLOWED_ORIGINS` receives HTTP 403, including preflight.

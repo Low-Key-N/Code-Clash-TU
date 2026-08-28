@@ -105,11 +105,18 @@
     <dialog id="application-dialog" aria-labelledby="application-dialog-title">
       <div class="dialog-heading"><div><p class="eyebrow">Application file</p><h2 id="application-dialog-title">Applicant</h2></div><button class="close-button" type="button" data-close="application-dialog" aria-label="Close application details">×</button></div>
       <div class="detail-grid" id="application-details"></div>
+      <section class="join-review" id="join-review" hidden>
+        <p class="eyebrow">Team reservation</p>
+        <h3 id="join-review-title">Pending join request</h3>
+        <div class="detail-grid" id="join-request-details"></div>
+        <input id="join-request-id" type="hidden" />
+        <div class="join-actions" id="join-request-actions"><button class="row-button danger-button" id="reject-join-request" type="button">Reject team join</button><button class="comic-button" id="approve-join-request" type="button">Approve team join</button></div>
+      </section>
       <form id="review-form">
         <input name="id" type="hidden" />
         <label>Decision<select name="status" required><option value="submitted">Submitted</option><option value="approved">Approved</option><option value="waitlisted">Waitlisted</option><option value="rejected">Rejected</option></select></label>
         <label>Private organizer notes<textarea name="notes" maxlength="2000" rows="5"></textarea></label>
-        <div class="dialog-actions"><button class="comic-button" type="submit">Save review</button></div>
+        <div class="dialog-actions split-actions"><button class="row-button danger-button" id="delete-application" type="button">Delete application</button><button class="comic-button" type="submit">Save review</button></div>
       </form>
     </dialog>
 
