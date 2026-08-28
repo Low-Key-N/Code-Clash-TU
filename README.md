@@ -185,7 +185,7 @@ Before setting `registrationOpen` to `true` in `supabase-config.js`:
 2. Generate a long random value and save it with
    `supabase secrets set RATE_LIMIT_SALT=...`.
 3. Set `ALLOWED_ORIGINS` to a comma-separated list of exact production origins
-   (the default is `https://low-key-n.github.io`).
+   (the production origin is `https://codeclashtu.com`).
 4. Deploy with `supabase functions deploy submit-application` and
    `supabase functions deploy list-public-teams`.
 5. Submit a test application; verify duplicate-email, honeypot, validation, and

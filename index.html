@@ -8,12 +8,78 @@
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Code/Clash issue 001 — Towson's accessible 24-hour student hackathon, November 13–14, 2026." />
-    <title>Code/Clash #001 | Towson Student Hackathon</title>
+    <meta
+      name="description"
+      content="CODE/CLASH is a 24-hour Towson University student hackathon organized by Bit Brothers and Sister Scripters, taking place November 13–14, 2026."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://codeclashtu.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CODE/CLASH" />
+    <meta property="og:title" content="CODE/CLASH 2026 | Towson University Student Hackathon" />
+    <meta
+      property="og:description"
+      content="CODE/CLASH is a 24-hour Towson University student hackathon organized by Bit Brothers and Sister Scripters, taking place November 13–14, 2026."
+    />
+    <meta property="og:url" content="https://codeclashtu.com/" />
+    <meta property="og:image" content="https://codeclashtu.com/assets/pixel-city-evening.png" />
+    <meta property="og:image:width" content="1823" />
+    <meta property="og:image:height" content="863" />
+    <meta
+      property="og:image:alt"
+      content="Pixel-art city skyline for the CODE/CLASH 2026 Towson University student hackathon."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CODE/CLASH 2026 | Towson University Student Hackathon" />
+    <meta
+      name="twitter:description"
+      content="CODE/CLASH is a 24-hour Towson University student hackathon organized by Bit Brothers and Sister Scripters, taking place November 13–14, 2026."
+    />
+    <meta name="twitter:image" content="https://codeclashtu.com/assets/pixel-city-evening.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Pixel-art city skyline for the CODE/CLASH 2026 Towson University student hackathon."
+    />
+    <title>CODE/CLASH 2026 | Towson University Student Hackathon</title>
     <link rel="icon" type="image/png" href="assets/code-clash-clock-tower.png" />
     <link rel="stylesheet" href="styles.css" />
     <script src="supabase-config.js"></script>
     <script src="script.js" defer></script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Event",
+        "name": "CODE/CLASH 2026",
+        "description": "A 24-hour Towson University student hackathon organized by Bit Brothers and Sister Scripters, where students explore, learn, and turn ambitious ideas into working projects.",
+        "startDate": "2026-11-13",
+        "endDate": "2026-11-14",
+        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+        "location": {
+          "@type": "Place",
+          "name": "Towson University campus",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Towson",
+            "addressRegion": "MD",
+            "addressCountry": "US"
+          }
+        },
+        "image": "https://codeclashtu.com/assets/pixel-city-evening.png",
+        "url": "https://codeclashtu.com/",
+        "organizer": [
+          {
+            "@type": "Organization",
+            "name": "Bit Brothers",
+            "url": "https://involved.towson.edu/organization/bitbrothers"
+          },
+          {
+            "@type": "Organization",
+            "name": "Sister Scripters",
+            "url": "https://involved.towson.edu/organization/sisterscripters"
+          }
+        ]
+      }
+    </script>
   </head>
   <body class="site-loading">
     <a class="skip-link" href="#top">Skip to main content</a>
@@ -59,7 +125,7 @@
           alt="Pixel-art city skyline viewed from a rooftop"
         />
         <div class="cover-shade"></div>
-        <div class="cover-imprint" aria-label="Code Clash issue 001">
+        <div class="cover-imprint" role="group" aria-label="Code Clash issue 001">
           <span class="imprint-mark" aria-hidden="true">Code/Clash</span>
           <span class="imprint-tower" aria-hidden="true">
             <img src="assets/code-clash-clock-tower.png" alt="" />
@@ -80,10 +146,10 @@
           <p class="kicker">Bit Brothers Presents</p>
           <h1>Code/Clash</h1>
           <p class="cover-tagline">Ideas assemble!</p>
-          <div class="event-cta" aria-label="Registration open for November 13 through 14, 2026">
+          <div class="event-cta" role="group" aria-label="Registration open for November 13 through 14, 2026">
             <a href="#register">Registration open</a>
             <strong>November 13–14, 2026</strong>
-            <div class="countdown" aria-label="Countdown to Code Clash" aria-live="off">
+            <div class="countdown" role="timer" aria-label="Countdown to Code Clash" aria-live="off">
               <small>Clash begins in</small>
               <div class="countdown-units">
                 <p><b id="countdown-days">000</b><em>Days</em></p>
@@ -108,10 +174,11 @@
         <div class="origin-right">
           <div class="origin-copy">
             <p>
-              Code/Clash is a 24-hour hackathon where Towson students come
-              together to explore, learn, and turn ambitious ideas into working
-              projects. Build alongside mentors and fellow creators, sharpen your
-              skills, and take a project from first sketch to final demo.
+              Organized by Bit Brothers and Sister Scripters, Code/Clash is a
+              24-hour hackathon where Towson students come together to explore,
+              learn, and turn ambitious ideas into working projects. Build
+              alongside mentors and fellow creators, sharpen your skills, and
+              take a project from first sketch to final demo.
             </p>
             <p>
               Whether you are a seasoned hacker or opening your editor for the
@@ -305,7 +372,7 @@
             knowledge, and bring the Towson community together.
           </p>
         </div>
-        <div class="community-partner-grid" aria-label="Community partner organizations">
+        <div class="community-partner-grid" role="group" aria-label="Community partner organizations">
           <article class="community-partner-card">
             <img src="assets/sister-scripters-logo.jpg" alt="Sister Scripters" />
             <div>

@@ -34,7 +34,7 @@
 
       <div class="dashboard" id="dashboard-view" hidden>
         <aside class="sidebar">
-          <a class="admin-logo" href="#overview" aria-label="Code Clash organizer dashboard">
+          <a class="admin-logo" href="#overview-panel" aria-label="Code Clash organizer dashboard">
             <img src="../assets/code-clash-logo-corrected.png" alt="Code Clash" />
           </a>
           <p class="issue-label">Organizer HQ · Issue 001</p>
@@ -60,7 +60,7 @@
           </header>
 
           <section class="dashboard-panel is-active" id="overview-panel" data-panel="overview">
-            <div class="metric-grid" id="metric-grid" aria-label="Application totals"></div>
+            <div class="metric-grid" id="metric-grid" role="group" aria-label="Application totals"></div>
             <div class="overview-grid">
               <article class="paper-card">
                 <p class="eyebrow">Review queue</p>
@@ -114,7 +114,7 @@
       </section>
       <form id="review-form">
         <input name="id" type="hidden" />
-        <label>Decision<select name="status" required><option value="submitted">Submitted</option><option value="approved">Approved</option><option value="waitlisted">Waitlisted</option><option value="rejected">Rejected</option></select></label>
+        <label>Decision<select name="status"><option value="submitted">Submitted</option><option value="approved">Approved</option><option value="waitlisted">Waitlisted</option><option value="rejected">Rejected</option></select></label>
         <label>Private organizer notes<textarea name="notes" maxlength="2000" rows="5"></textarea></label>
         <div class="dialog-actions split-actions"><button class="row-button danger-button" id="delete-application" type="button">Delete application</button><button class="comic-button" type="submit">Save review</button></div>
       </form>
