@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Code/Clash issue 001 — Towson's accessible 24-hour student hackathon, November 13–14, 2026." />
     <title>Code/Clash #001 | Towson Student Hackathon</title>
+    <link rel="icon" type="image/png" href="assets/code-clash-clock-tower.png" />
     <link rel="stylesheet" href="styles.css" />
     <script src="supabase-config.js"></script>
     <script src="script.js" defer></script>
@@ -39,9 +40,9 @@
       <nav id="primary-nav" aria-label="Main navigation">
         <a href="#roles">Roles</a>
         <a href="#schedule">Schedule</a>
-        <a href="#team">Team</a>
+        <!-- Team navigation is hidden until organizer profiles are ready. -->
         <a href="#faq">FAQ</a>
-        <a href="#sponsors">Sponsors</a>
+        <!-- Sponsor navigation is hidden until partners are announced. -->
         <a href="#community-partners">Community Partners</a>
         <a class="devpost-tab" href="https://devpost.com/" target="_blank" rel="noopener noreferrer" hidden>
           Devpost <span aria-hidden="true">↗</span>
@@ -79,8 +80,8 @@
           <p class="kicker">Bit Brothers Presents</p>
           <h1>Code/Clash</h1>
           <p class="cover-tagline">Ideas assemble!</p>
-          <div class="event-cta" aria-label="Registration coming soon for November 13 through 14, 2026">
-            <span>Registration coming soon</span>
+          <div class="event-cta" aria-label="Registration open for November 13 through 14, 2026">
+            <a href="#register">Registration open</a>
             <strong>November 13–14, 2026</strong>
             <div class="countdown" aria-label="Countdown to Code Clash" aria-live="off">
               <small>Clash begins in</small>
@@ -214,6 +215,7 @@
         </ol>
       </section>
 
+      <!-- Meet the Team: restore this section when organizer profiles and photos are ready.
       <section class="team-section" id="team">
         <div class="section-heading reveal">
           <p class="eyebrow">Meet the crew</p>
@@ -255,6 +257,7 @@
           </article>
         </div>
       </section>
+      -->
 
       <section class="faq-section" id="faq">
         <div class="section-heading reveal">
@@ -268,6 +271,7 @@
         </div>
       </section>
 
+      <!-- Sponsors: restore this section when confirmed sponsor information is ready.
       <section class="sponsors-section reveal" id="sponsors">
         <div class="sponsors-heading">
           <div>
@@ -288,6 +292,7 @@
         </div>
         <a class="sponsor-link" href="mailto:hello@example.com">Become a sponsor <span>→</span></a>
       </section>
+      -->
 
       <section class="community-partners-section reveal" id="community-partners">
         <div class="community-partners-heading">
@@ -320,8 +325,8 @@
       <section class="register-section reveal" id="register">
         <span class="mini-burst">NEXT ISSUE</span>
         <p class="eyebrow">November 13–14, 2026</p>
-        <h2 id="registration-title">Registration coming soon.</h2>
-        <p id="registration-copy">Applications will open after the final event details are confirmed.</p>
+        <h2 id="registration-title">Apply for CLASH #001.</h2>
+        <p id="registration-copy">Tell us how you want to join the clash. Required fields are marked with an asterisk.</p>
         <form class="application-form" id="application-form" novalidate hidden>
           <p class="testing-notice" id="testing-notice" hidden><strong>TEST MODE:</strong> Submissions are for testing only and do not count as official event applications.</p>
           <div class="form-grid">
@@ -378,9 +383,9 @@
       <nav class="footer-nav" aria-label="Footer navigation">
         <a href="#roles">Roles</a>
         <a href="#schedule">Schedule</a>
-        <a href="#team">Team</a>
+        <!-- Team navigation is hidden until organizer profiles are ready. -->
         <a href="#faq">FAQ</a>
-        <a href="#sponsors">Sponsors</a>
+        <!-- Sponsor navigation is hidden until partners are announced. -->
         <a href="#community-partners">Community Partners</a>
       </nav>
       <div class="footer-meta">
