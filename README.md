@@ -28,7 +28,7 @@ CODE/CLASH is a proposed 24-hour student hackathon presented by Bit Brothers at 
 
 ## Project Status
 
-This website is an early design and development prototype created to collect feedback from the Bit Brothers hackathon planning team. Registration is not currently open.
+This website is an early design and development prototype created to collect feedback from the Bit Brothers hackathon planning team. Registration is open with email verification required.
 
 ## Private organizer dashboard
 
@@ -110,17 +110,16 @@ Do not deploy blindly. First review:
 - `supabase/functions/organizer-admin/index.ts`
 - `admin/admin.js`
 
-Registration is paused pending production email delivery setup. Keep both the
-browser flag and protected submission function closed until the checklist below
-is complete:
+Registration is open with verified-email submission protection. The hosted
+submission function and browser flag use matching controls:
 
 ```bash
-npx supabase secrets set REGISTRATION_OPEN=false
+npx supabase secrets set REGISTRATION_OPEN=true
 ```
 
-`supabase-config.js` currently contains `registrationOpen: false`. After verifying
-email delivery and the protected application flow, set the hosted secret to
-`true`, then publish `registrationOpen: true`. To close registration safely,
+`supabase-config.js` currently contains `registrationOpen: true`. Production SMTP
+configuration and delivery to student inboxes still need verification; opening
+registration does not bypass email verification. To close registration safely,
 switch the browser flag to `false` first and then set the hosted secret to `false`.
 
 ### Enable verified registration
