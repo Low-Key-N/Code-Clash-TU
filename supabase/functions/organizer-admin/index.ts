@@ -88,16 +88,19 @@ Deno.serve(async (request) => {
         if (status) query = query.eq("application_status", status);
         return query;
       };
-      const [total, submitted, approved, waitlisted, rejected, teams] = await Promise.all([
+      const [total, submitted, approved, waitlisted, rejected, teams, reservations] = await Promise.all([
         countFor(), countFor("submitted"), countFor("approved"), countFor("waitlisted"), countFor("rejected"),
         admin.from("public_teams").select("id,team_name,member_first_names,member_roles,roles_needed,approved_project_interests,capacity,occupied_slots,publication_status,reviewed_by,published_at,display_order,updated_at").order("updated_at", { ascending: false }),
+        admin.from("team_join_requests").select("public_team_id").eq("status", "pending").gt("expires_at", new Date().toISOString()),
       ]);
       const countError = [total, submitted, approved, waitlisted, rejected].find((result) => result.error)?.error;
-      if (countError || teams.error) throw countError || teams.error;
+      if (countError || teams.error || reservations.error) throw countError || teams.error || reservations.error;
       return respond(200, {
         organizer: { id: authData.user.id, email: authData.user.email || "Organizer", displayName: organizer.display_name || "Organizer" },
         counts: { total: total.count || 0, submitted: submitted.count || 0, approved: approved.count || 0, waitlisted: waitlisted.count || 0, rejected: rejected.count || 0 },
-        teams: teams.data || [],
+        teams: (teams.data || []).map((team) => ({ ...team,
+          available_slots: Math.max(0, team.capacity - team.occupied_slots - (reservations.data || []).filter((item) => item.public_team_id === team.id).length),
+        })),
       }, origin);
     }
 
@@ -124,9 +127,9 @@ Deno.serve(async (request) => {
       if (error?.code === "PGRST116") return respond(404, { error: "Application not found." }, origin);
       if (error) throw error;
       let joinRequest: Record<string, unknown> | null = null;
-      if (data.team_status === "joining") {
+      if (data.team_status === "joining" || data.team_status === "solo") {
         const { data: requestData, error: requestError } = await admin.from("team_join_requests")
-          .select("id,public_team_id,desired_role,status,reserved_at,expires_at,organizer_reviewed_by,organizer_reviewed_at")
+          .select("id,public_team_id,desired_role,status,source,reserved_at,expires_at,organizer_reviewed_by,organizer_reviewed_at")
           .eq("application_id", id).maybeSingle();
         if (requestError) throw requestError;
         if (requestData) {
@@ -136,7 +139,25 @@ Deno.serve(async (request) => {
           joinRequest = { ...requestData, team: teamData };
         }
       }
-      return respond(200, { application: data, joinRequest }, origin);
+      let membership: Record<string, unknown> | null = joinRequest?.status === "approved"
+        ? { teamId: joinRequest.public_team_id, role: joinRequest.desired_role, isCreator: false, team: joinRequest.team }
+        : null;
+      if (!membership && data.team_status === "creating") {
+        const { data: invite, error: inviteError } = await admin.from("team_invites")
+          .select("public_team_id").eq("owner_application_id", id).maybeSingle();
+        if (inviteError) throw inviteError;
+        if (invite) {
+          const { data: team, error: teamError } = await admin.from("public_teams")
+            .select("team_name,publication_status,capacity,occupied_slots").eq("id", invite.public_team_id).single();
+          if (teamError) throw teamError;
+          membership = { teamId: invite.public_team_id, role: data.desired_roles[0], isCreator: true, team };
+        }
+      }
+      const { data: membershipChanges, error: changesError } = await admin.from("team_membership_changes")
+        .select("from_team_name,from_role,to_team_name,to_role,reviewed_by,created_at")
+        .eq("application_id", id).order("created_at", { ascending: false }).limit(20);
+      if (changesError) throw changesError;
+      return respond(200, { application: data, joinRequest, membership, membershipChanges }, origin);
     }
 
     if (action === "updateApplication") {
@@ -203,6 +224,36 @@ Deno.serve(async (request) => {
         ...(inviteCode ? { inviteCode } : {}),
         message: createdTeam ? "Application approved and draft team created. The invite code is saved on the private application record." : inviteCode ? "Application updated and a retrievable invite code was saved." : "Application updated.",
       }, origin);
+    }
+
+    if (action === "assignSoloToTeam") {
+      const applicantId = uuid(body.id);
+      const teamId = uuid(body.teamId);
+      const assignedRole = allowed(body.role, roles);
+      if (!applicantId || !teamId || !assignedRole) return respond(422, { error: "A valid application, team, and role are required." }, origin);
+      const { data, error } = await admin.rpc("assign_solo_to_team", {
+        applicant_id: applicantId, team_id: teamId, assigned_role: assignedRole, reviewer,
+      });
+      if (error?.code === "P0001") return respond(409, { error: error.message }, origin);
+      if (error) throw error;
+      return respond(200, { membershipId: data, message: "Solo applicant assigned to the team." }, origin);
+    }
+
+    if (action === "moveTeamMember") {
+      const applicantId = uuid(body.id);
+      const expectedTeamId = uuid(body.expectedTeamId);
+      const destinationTeamId = body.teamId === null ? null : uuid(body.teamId);
+      const assignedRole = allowed(body.role, roles);
+      if (!applicantId || !expectedTeamId || (body.teamId !== null && (!destinationTeamId || !assignedRole))) {
+        return respond(422, { error: "A valid application, current team, and destination (team or solo) are required." }, origin);
+      }
+      const { error } = await admin.rpc("move_team_member", {
+        applicant_id: applicantId, expected_team_id: expectedTeamId,
+        destination_team_id: destinationTeamId, assigned_role: destinationTeamId ? assignedRole : null, reviewer,
+      });
+      if (error?.code === "P0001") return respond(409, { error: error.message }, origin);
+      if (error) throw error;
+      return respond(200, { message: destinationTeamId ? "Participant moved to the selected team." : "Participant returned to solo. Their previous team slot is now available." }, origin);
     }
 
     if (normalizedAction === "deleteapplication") {

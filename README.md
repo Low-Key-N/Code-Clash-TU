@@ -57,6 +57,46 @@ role, expiration, and capacity. Approving the join request adds the participant
 to the team; rejecting it releases the pending request without exposing the
 invite code.
 
+Solo applicants can join a team at check-in from **Applications → Review →
+Assign to team**. Save an approved application decision first, then reopen the
+application, choose a team and role, and confirm that both participant and team
+agree. Draft and published teams are eligible; archived teams are excluded.
+Available slots account for active invite reservations. The database checks
+capacity and prevents duplicate assignments in the same transaction that updates
+occupancy and creates an approved private membership record. The original solo
+application is preserved. Reopening it shows the assigned team, role, organizer,
+and assignment time. Names and roles appear publicly only with public-board
+consent.
+
+To enable this action, apply
+`supabase/migrations/202609150001_assign_solo_to_team.sql`, redeploy
+`organizer-admin`, and publish the updated `admin/` files. Apply the migration
+before deploying the function because application details now read the membership
+source column.
+
+Existing members can use **Applications → Review → Change team** to move to a
+different team and role, or select **Solo (leave current team)**. This works for
+approved invite memberships, organizer assignments, and team creators. Pending
+invite requests still use the existing approve/reject controls. Moving releases
+the previous slot and public roster entry, restores the vacated role to the old
+team's requested roles, and reserves no extra slot on return to solo. Returning
+to solo allows the applicant to be assigned again through the solo workflow.
+Destination capacity includes active reservations; archived destinations and
+stale membership changes are rejected without changing either team.
+
+Leaving as a creator revokes their old team's invite code and clears it from
+their application. The old team and its other members remain. Existing pending
+join requests remain available for organizer review. Each transfer or return to
+solo records its previous team/role, destination, organizer, and time in a private
+history shown on the application. Only public fields covered by consent move to
+the destination roster. Names entered manually in the public-team editor do not
+establish an application membership; these controls use registered membership
+records or the creator's team invite link.
+
+Apply `supabase/migrations/202609150002_move_team_members.sql` after the solo
+assignment migration, then deploy `organizer-admin` and the updated dashboard.
+Both migrations must be applied before deploying the current function.
+
 The current owner invite code remains visible on the private application detail
 record so an organizer can retrieve it later. It is excluded from public APIs
 and CSV exports. Approving a legacy creating-team application with only a hashed
@@ -158,6 +198,17 @@ Then visit `http://localhost:8000/admin/` and verify, in order:
 
 After deployment, inspect Edge Function logs for authorization or database
 errors without logging tokens or private application bodies.
+
+The solo-assignment database regression checks are in
+`supabase/tests/assign_solo_to_team.sql`. Run them against a migrated local/test
+database with `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/assign_solo_to_team.sql`.
+The checks create temporary fixtures and roll back. They cover capacity,
+reservations, duplicate assignments, applicant approval, consent, audit records,
+and function permissions.
+
+Run `supabase/tests/move_team_member.sql` the same way to verify transfers,
+returns to solo, reassignment, creator invite revocation, duplicate public names,
+reservation capacity, stale requests, consent, history, and access permissions.
 
 ## Secure application deployment
 

@@ -17,6 +17,8 @@ const applicationDialog = document.querySelector("#application-dialog");
 const teamDialog = document.querySelector("#team-dialog");
 const reviewForm = document.querySelector("#review-form");
 const teamForm = document.querySelector("#team-form");
+const assignmentForm = document.querySelector("#assignment-form");
+const membershipForm = document.querySelector("#membership-form");
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -186,7 +188,12 @@ function detailValue(key, value) {
 async function openApplication(id) {
   setStatus(globalStatus, "Opening application…");
   try {
-    const { application, joinRequest } = await adminRequest("applicationDetail", { id });
+    const { application, joinRequest, membership, membershipChanges } = await adminRequest("applicationDetail", { id });
+    if (membership || (application.team_status === "solo" && !joinRequest)) {
+      const fresh = await adminRequest("bootstrap");
+      state.teams = fresh.teams;
+      renderOverview(fresh.counts); renderTeams();
+    }
     document.querySelector("#application-dialog-title").textContent = application.full_name;
     const details = document.querySelector("#application-details"); details.replaceChildren();
     Object.entries(detailLabels).forEach(([key, label]) => {
@@ -199,9 +206,69 @@ async function openApplication(id) {
     reviewForm.elements.status.value = application.application_status;
     reviewForm.elements.notes.value = application.organizer_notes || "";
     renderJoinRequest(joinRequest);
+    renderAssignment(application, joinRequest);
+    renderMembership(application, membership, membershipChanges || []);
     applicationDialog.showModal();
     setStatus(globalStatus);
   } catch (error) { handleRequestError(error); }
+}
+
+function renderAssignment(application, joinRequest) {
+  assignmentForm.reset();
+  assignmentForm.hidden = application.team_status !== "solo" || Boolean(joinRequest);
+  setStatus(document.querySelector("#assignment-status"));
+  if (assignmentForm.hidden) return;
+  assignmentForm.elements.id.value = application.id;
+  const available = state.teams.filter((team) => team.publication_status !== "archived" && team.available_slots > 0);
+  const placeholder = element("option", "", available.length ? "Select a team" : "No teams have available slots");
+  placeholder.value = "";
+  assignmentForm.elements.teamId.replaceChildren(placeholder, ...available.map((team) => {
+    const option = element("option", "", `${team.team_name} (${team.available_slots} available, ${team.publication_status})`);
+    option.value = team.id; return option;
+  }));
+  assignmentForm.elements.role.replaceChildren(...roles.map((role) => {
+    const option = element("option", "", role); option.value = role; return option;
+  }));
+  assignmentForm.elements.role.value = application.desired_roles?.[0] || roles[0];
+  const approved = application.application_status === "approved";
+  assignmentForm.querySelector('button[type="submit"]').disabled = !approved || !available.length;
+  document.querySelector("#assignment-help").textContent = !approved
+    ? "Save an approved decision, then reopen this application to assign a team."
+    : "Available slots exclude active invite reservations. Names appear publicly only with public-board consent.";
+}
+
+function renderMembership(application, membership, changes) {
+  membershipForm.reset();
+  membershipForm.hidden = !membership;
+  setStatus(document.querySelector("#membership-status"));
+  document.querySelector("#membership-history").hidden = !changes.length;
+  document.querySelector("#membership-history-list").replaceChildren(...changes.map((change) =>
+    element("li", "", `${change.from_team_name} (${change.from_role}) → ${change.to_team_name ? `${change.to_team_name} (${change.to_role})` : "Solo"} — ${change.reviewed_by}, ${formatDate(change.created_at)}`)));
+  if (!membership) return;
+  membershipForm.elements.id.value = application.id;
+  membershipForm.elements.expectedTeamId.value = membership.teamId;
+  document.querySelector("#membership-current").textContent = `Current team: ${membership.team.team_name} · ${membership.role}${membership.isCreator ? " · Team creator" : ""}`;
+  const placeholder = element("option", "", "Select a destination"); placeholder.value = "";
+  const solo = element("option", "", "Solo (leave current team)"); solo.value = "solo";
+  const available = state.teams.filter((team) => team.id !== membership.teamId && team.publication_status !== "archived" && team.available_slots > 0);
+  membershipForm.elements.teamId.replaceChildren(placeholder, solo, ...available.map((team) => {
+    const option = element("option", "", `${team.team_name} (${team.available_slots} available, ${team.publication_status})`);
+    option.value = team.id; return option;
+  }));
+  membershipForm.elements.role.replaceChildren(...roles.map((role) => {
+    const option = element("option", "", role); option.value = role; return option;
+  }));
+  membershipForm.elements.role.value = membership.role;
+  membershipForm.dataset.isCreator = String(membership.isCreator);
+  document.querySelector("#membership-help").textContent = "Moving releases the current team slot. Available slots exclude active reservations."
+    + (membership.isCreator ? " Leaving also revokes this creator's old team invite code." : "");
+  updateMembershipRole();
+}
+
+function updateMembershipRole() {
+  const solo = membershipForm.elements.teamId.value === "solo";
+  membershipForm.elements.role.disabled = solo;
+  document.querySelector("#membership-role-label").hidden = solo;
 }
 
 function renderJoinRequest(joinRequest) {
@@ -209,11 +276,15 @@ function renderJoinRequest(joinRequest) {
   panel.hidden = !joinRequest;
   if (!joinRequest) return;
   document.querySelector("#join-request-id").value = joinRequest.id;
-  document.querySelector("#join-review-title").textContent = `${joinRequest.status} join request`;
+  const assigned = joinRequest.source === "organizer";
+  document.querySelector("#join-review-title").textContent = assigned ? "Assigned by organizer" : `${joinRequest.status} join request`;
   const team = joinRequest.team || {};
   const details = document.querySelector("#join-request-details");
   details.replaceChildren();
-  [["Requested team", team.team_name || "Unavailable"], ["Requested role", joinRequest.desired_role], ["Status", joinRequest.status], ["Reserved", formatDate(joinRequest.reserved_at)], ["Expires", formatDate(joinRequest.expires_at)], ["Team capacity", team.capacity ? `${team.occupied_slots}/${team.capacity}` : "—"]].forEach(([label, value]) => {
+  const fields = [["Team", team.team_name || "Unavailable"], ["Role", joinRequest.desired_role], ["Status", joinRequest.status], ["Team capacity", team.capacity ? `${team.occupied_slots}/${team.capacity}` : "—"]];
+  if (assigned) fields.push(["Assigned by", joinRequest.organizer_reviewed_by], ["Assigned", formatDate(joinRequest.organizer_reviewed_at)]);
+  else fields.push(["Reserved", formatDate(joinRequest.reserved_at)], ["Expires", formatDate(joinRequest.expires_at)]);
+  fields.forEach(([label, value]) => {
     const item = element("dl", "detail-item"); item.append(element("dt", "", label), element("dd", "", value)); details.append(item);
   });
   document.querySelector("#join-request-actions").hidden = joinRequest.status !== "pending";
@@ -349,6 +420,56 @@ document.querySelector("#application-filter").addEventListener("change", (event)
 document.querySelector("#previous-page").addEventListener("click", () => { if (state.page > 1) { state.page -= 1; loadApplications(); } });
 document.querySelector("#next-page").addEventListener("click", () => { if (state.page * state.pageSize < state.count) { state.page += 1; loadApplications(); } });
 applicationsBody.addEventListener("click", (event) => { const button = event.target.closest("[data-application-id]"); if (button) openApplication(button.dataset.applicationId); });
+
+assignmentForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const team = state.teams.find((item) => item.id === assignmentForm.elements.teamId.value);
+  if (!team) return;
+  const applicant = document.querySelector("#application-dialog-title").textContent;
+  const role = assignmentForm.elements.role.value;
+  if (!confirm(`Assign ${applicant} to ${team.team_name} as ${role}? This uses one team slot. Confirm the participant and team agree.`)) return;
+  const button = assignmentForm.querySelector('button[type="submit"]');
+  setBusy(button, true, "Assigning…");
+  setStatus(document.querySelector("#assignment-status"));
+  try {
+    const result = await adminRequest("assignSoloToTeam", { id: assignmentForm.elements.id.value, teamId: team.id, role });
+    applicationDialog.close();
+    await loadApplications();
+    const fresh = await adminRequest("bootstrap"); state.teams = fresh.teams; renderOverview(fresh.counts); renderTeams();
+    setStatus(globalStatus, result.message);
+  } catch (error) {
+    setStatus(document.querySelector("#assignment-status"), error.message, true);
+    if (error.status === 401 || error.status === 403) { applicationDialog.close(); handleRequestError(error); }
+  } finally { setBusy(button, false); }
+});
+
+membershipForm.elements.teamId.addEventListener("change", updateMembershipRole);
+membershipForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const solo = membershipForm.elements.teamId.value === "solo";
+  const team = state.teams.find((item) => item.id === membershipForm.elements.teamId.value);
+  if (!solo && !team) return;
+  const applicant = document.querySelector("#application-dialog-title").textContent;
+  const role = membershipForm.elements.role.value;
+  const creatorWarning = membershipForm.dataset.isCreator === "true" ? " Their old team invite code will be revoked." : "";
+  if (!confirm(`${solo ? `Return ${applicant} to solo` : `Move ${applicant} to ${team.team_name} as ${role}`}? This releases their current team slot.${creatorWarning}`)) return;
+  const button = membershipForm.querySelector('button[type="submit"]');
+  setBusy(button, true, "Saving…");
+  setStatus(document.querySelector("#membership-status"));
+  try {
+    const result = await adminRequest("moveTeamMember", {
+      id: membershipForm.elements.id.value, expectedTeamId: membershipForm.elements.expectedTeamId.value,
+      teamId: solo ? null : team.id, role: solo ? null : role,
+    });
+    applicationDialog.close();
+    await loadApplications();
+    const fresh = await adminRequest("bootstrap"); state.teams = fresh.teams; renderOverview(fresh.counts); renderTeams();
+    setStatus(globalStatus, result.message);
+  } catch (error) {
+    setStatus(document.querySelector("#membership-status"), error.message, true);
+    if (error.status === 401 || error.status === 403) { applicationDialog.close(); handleRequestError(error); }
+  } finally { setBusy(button, false); }
+});
 
 reviewForm.addEventListener("submit", async (event) => {
   event.preventDefault(); const button = reviewForm.querySelector('button[type="submit"]'); setBusy(button, true, "Saving…");
