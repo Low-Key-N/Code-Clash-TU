@@ -95,3 +95,21 @@ add the service-role key to `supabase-config.js`, `admin/admin.js`, repository
 secrets, logs, screenshots, or CSV exports. Keep private-table grants revoked
 from `anon` and `authenticated`, and keep allowed origins exact rather than
 using a wildcard.
+
+## Applicant email verification
+
+Registration requires a recent Supabase email OTP/magic-link session. The
+submission function validates the access token with Auth, requires a confirmed
+email and recent inbox authentication, and rejects an email different from the
+verified account. Registration uses email-only Auth accounts (application phone
+numbers are separate private fields). Password-only and anonymous sessions are
+not accepted. Access tokens stay in browser memory; callback tokens are removed
+from the URL immediately and refresh tokens are not retained.
+
+Successful new and duplicate submissions return the same receipt. Existing
+applications are never overwritten by a duplicate. The rate limiter uses the
+verified Auth user ID with a private salt, not caller-controlled IP headers.
+Supabase Auth's own OTP limits protect verification-link requests. Configure
+production SMTP, enable Confirm Email and secure email changes, and keep signup
+and email sending rate limits appropriate for the event before opening registration.
+No client-side flag can bypass these server checks.

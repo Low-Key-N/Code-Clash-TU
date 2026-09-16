@@ -273,7 +273,6 @@ updateAmbientScene();
 const applicationForm = document.querySelector("#application-form");
 
 if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
-  applicationForm.hidden = false;
   const testingMode = window.SUPABASE_CONFIG.testingMode === true;
   document.querySelector("#registration-title").textContent = testingMode ? "Test the CLASH #001 application." : "Apply for CLASH #001.";
   document.querySelector("#registration-copy").textContent = testingMode
@@ -327,6 +326,8 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
 
   applicationForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const verifiedToken = window.registrationAuth?.token();
+    if (!verifiedToken) return;
     statusMessage.classList.remove("is-error");
 
     if (!applicationForm.reportValidity()) return;
@@ -355,6 +356,7 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
 
     const data = new FormData(applicationForm);
     const payload = Object.fromEntries(data.entries());
+    payload.schoolEmail = window.registrationAuth.email();
     payload.formElapsedMs = Date.now() - Number(startedAt.value);
     payload.desiredRoles = desiredRoles;
     payload.rolesNeeded = rolesNeeded;
@@ -374,21 +376,22 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
     try {
       const response = await fetch(`${config.url}/functions/v1/submit-application`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", apikey: config.publishableKey },
+        headers: { "Content-Type": "application/json", apikey: config.publishableKey, Authorization: `Bearer ${verifiedToken}` },
         body: JSON.stringify(payload),
       });
       const result = await response.json().catch(() => ({}));
+      if (result.code === "EMAIL_VERIFICATION_REQUIRED") {
+        window.registrationAuth.reset("Email verification expired. Request a fresh link.");
+        return;
+      }
       if (!response.ok) throw new Error(result.error || "We could not submit your application.");
 
       applicationForm.reset();
+      applicationForm.elements.schoolEmail.value = window.registrationAuth.email();
       startedAt.value = String(Date.now());
       validateProjectInterests();
       updateTeamFields();
-      statusMessage.textContent = teamStatus === "joining"
-        ? "Your slot is reserved pending organizer approval."
-        : testingMode
-          ? "Test submission received! This is not an official event application."
-          : "Application received! Check your school email for future updates.";
+      statusMessage.textContent = result.message || "Application received. Organizers will review your team placement.";
     } catch (error) {
       statusMessage.textContent = error.message || "We could not submit your application. Please try again.";
       statusMessage.classList.add("is-error");

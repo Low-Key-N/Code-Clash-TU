@@ -110,16 +110,42 @@ Do not deploy blindly. First review:
 - `supabase/functions/organizer-admin/index.ts`
 - `admin/admin.js`
 
-The public site is currently configured for open registration. The protected
-submission function must use the matching hosted control:
+Registration is paused pending production email delivery setup. Keep both the
+browser flag and protected submission function closed until the checklist below
+is complete:
 
 ```bash
-npx supabase secrets set REGISTRATION_OPEN=true
+npx supabase secrets set REGISTRATION_OPEN=false
 ```
 
-`supabase-config.js` must also contain `registrationOpen: true`. To close
-registration safely, switch the browser flag to `false` first and then set the
-hosted secret to `false`.
+`supabase-config.js` currently contains `registrationOpen: false`. After verifying
+email delivery and the protected application flow, set the hosted secret to
+`true`, then publish `registrationOpen: true`. To close registration safely,
+switch the browser flag to `false` first and then set the hosted secret to `false`.
+
+### Enable verified registration
+
+1. Configure custom SMTP in Supabase Auth for delivery to real student inboxes.
+   The built-in sender is restricted and is not suitable for public registration.
+2. Enable email signups, **Confirm Email**, and **Secure Email Change**. Keep phone
+   signup disabled for applicant accounts. Application phone fields are unrelated
+   to Auth phone accounts.
+3. Set the Auth Site URL to `https://codeclashtu.com/` and allow that exact callback
+   URL. Keep the standard magic-link email template containing `ConfirmationURL`.
+4. Review Auth email-send and OTP rate limits for expected event traffic.
+5. Deploy `submit-application` and the updated frontend. A new applicant must open
+   the email link before completing the form. The session lasts at most one hour
+   and is held only in memory, so reloading requires a fresh link.
+6. Verify delivery to a consenting test recipient and test submission, changed
+   email rejection, expired links, and duplicate receipts before opening publicly.
+
+The server validates email ownership before reading or writing application state.
+Duplicates return the same receipt as new submissions and leave the existing
+application unchanged. Existing pre-verification applications are preserved;
+organizers should resolve any disputed legacy submissions privately. Application
+rate limits use a salted verified account ID, so spoofed proxy IP headers cannot
+reset the 30-attempt hourly limit. Run the local security regression checks with
+`node --test tests/registration-security.test.cjs` (Node 24 or newer).
 
 Link the production project and preview the migration:
 
@@ -142,7 +168,7 @@ used with `python -m http.server 8000`; do not use `*`:
 npx supabase secrets set ALLOWED_ORIGINS=https://codeclashtu.com,http://localhost:8000
 ```
 
-Deploy only the protected function. JWT gateway verification is disabled so
+Deploy the protected organizer function. JWT gateway verification is disabled so
 the function can return controlled 401/403 responses; the function itself
 calls Supabase Auth to validate every JWT before checking `public.organizers`:
 
@@ -239,8 +265,8 @@ Before setting `registrationOpen` to `true` in `supabase-config.js`:
    (the production origin is `https://codeclashtu.com`).
 4. Deploy with `supabase functions deploy submit-application` and
    `supabase functions deploy list-public-teams`.
-5. Submit a test application; verify duplicate-email, honeypot, validation, and
-   30-attempt-per-source/hour responses; and
+5. Complete the email setup above and submit a verified test application; verify
+   duplicate receipts, honeypot, validation, and 30-attempt-per-account/hour responses; and
    confirm that the `anon` and `authenticated` roles cannot read or write the
    `applications`, `application_rate_limits`, or `public_teams` tables.
 
