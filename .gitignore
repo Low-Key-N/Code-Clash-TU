@@ -2,6 +2,48 @@
 .env
 .env.*
 !.env.example
+.envrc
+*.local
+/.secrets/
+/secrets/
+/credentials/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+service-account*.json
+*-service-account.json
+
+# Participant exports, database backups, and private working data
+/private/
+/exports/
+/backups/
+/supabase/backups/
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.dump
+*.backup
+*.sqlite
+*.sqlite3
+*.db
+*.sql.gz
+*.sql.zip
+*-dump.sql
+*_dump.sql
+dump.sql
+backup.sql
+
+# Local logs and browser/session test artifacts can contain private data
+*.log
+/logs/
+/playwright/.auth/
+/playwright-report/
+/test-results/
+/coverage/
+node_modules/
 
 # Local editor and operating-system files
 .DS_Store
@@ -11,4 +53,5 @@ Thumbs.db
 
 # Supabase CLI local link metadata
 supabase/.temp/
+supabase/.branches/
 assets/comic-panel-template.jpg

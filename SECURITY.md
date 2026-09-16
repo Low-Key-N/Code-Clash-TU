@@ -12,6 +12,25 @@ but a `.env` file does not make secrets usable or private in browser code.
 If a future feature needs a secret, place it in a controlled backend or
 serverless function and expose only a narrowly scoped public endpoint.
 
+The tracked backend source and SQL migrations contain application logic, not
+production credentials or participant records. Keep that code versioned. The
+Supabase publishable key in `supabase-config.js` is intended for browser use;
+service-role keys, secret keys, and participant data must stay outside Git.
+
+`.gitignore` excludes local environment files, credential/key files, spreadsheet
+exports, common database dumps, logs, and browser authentication artifacts.
+Store any other private working files under `/private/`, `/exports/`,
+`/backups/`, `/secrets/`, or `/credentials/`, which are also ignored. Arbitrary
+JSON or SQL filenames elsewhere are not automatically private; actual schema
+migrations and tests remain tracked. Never force-add private files.
+
+Ignore rules only prevent untracked files from being added normally. They do
+not encrypt files, protect browser-delivered code, remove already tracked data,
+or erase Git history. Before committing, review staged changes with
+`git diff --cached` and check exclusions with `git check-ignore -v PATH`.
+If a credential was committed, rotate it and address the existing Git history;
+adding an ignore rule is not sufficient.
+
 ## Participant and team data
 
 Only approved public fields should reach this website. Do not expose raw form
