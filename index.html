@@ -44,7 +44,6 @@
     <link rel="icon" type="image/png" href="assets/code-clash-clock-tower.png" />
     <link rel="stylesheet" href="styles.css" />
     <script src="supabase-config.js"></script>
-    <script src="registration-auth.js" defer></script>
     <script src="script.js" defer></script>
     <script type="application/ld+json">
       {
@@ -400,20 +399,12 @@
         <span class="mini-burst">NEXT ISSUE</span>
         <p class="eyebrow">November 13–14, 2026</p>
         <h2 id="registration-title">Apply for CLASH #001.</h2>
-        <p id="registration-copy">Verify your school email, then tell us how you want to join the clash. Required fields are marked with an asterisk.</p>
-        <form class="application-form" id="email-verification-form" hidden>
-          <p>Verify your school email first. Open the link we send, then complete your application.</p>
-          <label>School email address<input name="email" type="email" autocomplete="email" maxlength="254" required /></label>
-          <button class="comic-button comic-button-light" type="submit">Send verification link</button>
-          <p class="form-status" id="verification-status" role="status" aria-live="polite"></p>
-        </form>
+        <p id="registration-copy">Tell us how you want to join the clash. Required fields are marked with an asterisk.</p>
         <form class="application-form" id="application-form" novalidate hidden>
-          <p id="verified-email-status" role="status"></p>
-          <button class="comic-button comic-button-light" id="change-verified-email" type="button">Use another email</button>
           <p class="testing-notice" id="testing-notice" hidden><strong>TEST MODE:</strong> Submissions are for testing only and do not count as official event applications.</p>
           <div class="form-grid">
             <label>Full name *<input name="fullName" type="text" autocomplete="name" minlength="2" maxlength="100" required /></label>
-            <label>Verified school email address *<input name="schoolEmail" type="email" autocomplete="email" maxlength="254" readonly required /></label>
+            <label>School email address *<input name="schoolEmail" type="email" autocomplete="email" maxlength="254" required /></label>
             <label>College or university *<input name="school" type="text" autocomplete="organization" minlength="2" maxlength="150" required /></label>
             <label>Major/program *<input name="major" type="text" maxlength="120" required /></label>
             <label>Graduation year *<input name="graduationYear" type="number" inputmode="numeric" min="2026" max="2035" required /></label>

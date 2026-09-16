@@ -38,7 +38,7 @@ Deno.serve(async (request) => {
     if (!origin || !allowedOrigins.includes(origin)) return json(403, { error: "Origin not allowed." }, origin);
     return new Response(null, { status: 204, headers: {
       "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+      "Access-Control-Allow-Headers": "apikey, content-type",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Max-Age": "86400",
       "Vary": "Origin",
@@ -47,28 +47,6 @@ Deno.serve(async (request) => {
   if (request.method !== "POST") return json(405, { error: "Method not allowed." }, origin);
   if (!origin || !allowedOrigins.includes(origin)) return json(403, { error: "Origin not allowed." }, origin);
   if (Deno.env.get("REGISTRATION_OPEN") !== "true") return json(403, { error: "Registration is currently closed." }, origin);
-  const authorization = request.headers.get("authorization") || "";
-  const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
-  if (!token) return json(401, { error: "Verify your school email before submitting.", code: "EMAIL_VERIFICATION_REQUIRED" }, origin);
-  const url = Deno.env.get("SUPABASE_URL") || "";
-  const publicKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SB_PUBLISHABLE_KEY") || "";
-  if (!url || !publicKey) return json(503, { error: "Applications are temporarily unavailable." }, origin);
-  const authClient = createClient(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
-  const { data: authData, error: authError } = await authClient.auth.getUser(token);
-  const user = authData?.user;
-  if (authError || !user?.email || !user.email_confirmed_at || user.is_anonymous) {
-    return json(401, { error: "Verify your school email before submitting.", code: "EMAIL_VERIFICATION_REQUIRED" }, origin);
-  }
-  // Require recent inbox-based authentication, even if automatic signup
-  // confirmation was accidentally enabled. Decode only AFTER Auth validates JWT.
-  let inboxVerified = false;
-  try {
-    const claims = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
-    inboxVerified = claims.email?.toLowerCase() === user.email.toLowerCase()
-      && !user.phone && Array.isArray(claims.amr) && claims.amr.some((entry: { method?: string; timestamp?: number }) =>
-        ["otp", "magiclink"].includes(entry.method || "") && Number(entry.timestamp) > Date.now() / 1000 - 3600);
-  } catch { /* Malformed claims never grant submission access. */ }
-  if (!inboxVerified) return json(401, { error: "Open a fresh email verification link before submitting.", code: "EMAIL_VERIFICATION_REQUIRED" }, origin);
   if (Number(request.headers.get("content-length") || 0) > 16_384) return json(413, { error: "Request is too large." }, origin);
 
   let body: Record<string, unknown>;
@@ -85,7 +63,6 @@ Deno.serve(async (request) => {
 
   const fullName = clean(body.fullName, 100);
   const schoolEmail = clean(body.schoolEmail, 254).toLowerCase();
-  if (schoolEmail !== user.email.toLowerCase()) return json(403, { error: "Use the school email you verified." }, origin);
   const school = clean(body.school, 150);
   const major = clean(body.major, 120);
   const graduationYear = Number(body.graduationYear);
@@ -112,8 +89,8 @@ Deno.serve(async (request) => {
     catch { return json(422, { error: "Portfolio URL must be a valid HTTPS address." }, origin); }
   }
 
-  // The validated account ID cannot be changed by spoofing proxy headers.
-  const source = `verified-user:${user.id}`;
+  // Limit repeated attempts for the same address without trusting proxy headers.
+  const source = `application-email:${schoolEmail}`;
   let secretKeys: Record<string, string> = {};
   try { secretKeys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}"); } catch { /* Fail closed below. */ }
   const secretKey =

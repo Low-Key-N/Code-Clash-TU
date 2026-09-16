@@ -28,7 +28,7 @@ CODE/CLASH is a proposed 24-hour student hackathon presented by Bit Brothers at 
 
 ## Project Status
 
-This website is an early design and development prototype created to collect feedback from the Bit Brothers hackathon planning team. Registration is open with email verification required.
+This website is an early design and development prototype created to collect feedback from the Bit Brothers hackathon planning team. Registration is open with direct application submissions.
 
 ## Private organizer dashboard
 
@@ -110,41 +110,24 @@ Do not deploy blindly. First review:
 - `supabase/functions/organizer-admin/index.ts`
 - `admin/admin.js`
 
-Registration is open with verified-email submission protection. The hosted
+Registration is open with direct application submissions. The hosted
 submission function and browser flag use matching controls:
 
 ```bash
 npx supabase secrets set REGISTRATION_OPEN=true
 ```
 
-`supabase-config.js` currently contains `registrationOpen: true`. Production SMTP
-configuration and delivery to student inboxes still need verification; opening
-registration does not bypass email verification. To close registration safely,
-switch the browser flag to `false` first and then set the hosted secret to `false`.
+`supabase-config.js` currently contains `registrationOpen: true`. Applicants fill
+out the form and submit directly, without an account, verification link, or SMTP
+setup. To close registration safely, switch the browser flag to `false` first
+and then set the hosted secret to `false`.
 
-### Enable verified registration
-
-1. Configure custom SMTP in Supabase Auth for delivery to real student inboxes.
-   The built-in sender is restricted and is not suitable for public registration.
-2. Enable email signups, **Confirm Email**, and **Secure Email Change**. Keep phone
-   signup disabled for applicant accounts. Application phone fields are unrelated
-   to Auth phone accounts.
-3. Set the Auth Site URL to `https://codeclashtu.com/` and allow that exact callback
-   URL. Keep the standard magic-link email template containing `ConfirmationURL`.
-4. Review Auth email-send and OTP rate limits for expected event traffic.
-5. Deploy `submit-application` and the updated frontend. A new applicant must open
-   the email link before completing the form. The session lasts at most one hour
-   and is held only in memory, so reloading requires a fresh link.
-6. Verify delivery to a consenting test recipient and test submission, changed
-   email rejection, expired links, and duplicate receipts before opening publicly.
-
-The server validates email ownership before reading or writing application state.
-Duplicates return the same receipt as new submissions and leave the existing
-application unchanged. Existing pre-verification applications are preserved;
-organizers should resolve any disputed legacy submissions privately. Application
-rate limits use a salted verified account ID, so spoofed proxy IP headers cannot
-reset the 30-attempt hourly limit. Run the local security regression checks with
-`node --test tests/registration-security.test.cjs` (Node 24 or newer).
+Successful new and duplicate applications return the same receipt and existing
+applications are not overwritten. A salted, normalized email address limits
+repeated attempts to 30 per hour without trusting caller-supplied IP headers.
+This does not verify ownership or prevent abuse using many different addresses.
+Run regression checks with `node --test tests/registration-security.test.cjs`
+(Node 24 or newer).
 
 Link the production project and preview the migration:
 
@@ -264,8 +247,8 @@ Before setting `registrationOpen` to `true` in `supabase-config.js`:
    (the production origin is `https://codeclashtu.com`).
 4. Deploy with `supabase functions deploy submit-application` and
    `supabase functions deploy list-public-teams`.
-5. Complete the email setup above and submit a verified test application; verify
-   duplicate receipts, honeypot, validation, and 30-attempt-per-account/hour responses; and
+5. Submit a test application; verify
+   duplicate receipts, honeypot, validation, and 30-attempt-per-email/hour responses; and
    confirm that the `anon` and `authenticated` roles cannot read or write the
    `applications`, `application_rate_limits`, or `public_teams` tables.
 

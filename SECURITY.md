@@ -96,20 +96,13 @@ secrets, logs, screenshots, or CSV exports. Keep private-table grants revoked
 from `anon` and `authenticated`, and keep allowed origins exact rather than
 using a wildcard.
 
-## Applicant email verification
+## Public application submissions
 
-Registration requires a recent Supabase email OTP/magic-link session. The
-submission function validates the access token with Auth, requires a confirmed
-email and recent inbox authentication, and rejects an email different from the
-verified account. Registration uses email-only Auth accounts (application phone
-numbers are separate private fields). Password-only and anonymous sessions are
-not accepted. Access tokens stay in browser memory; callback tokens are removed
-from the URL immediately and refresh tokens are not retained.
-
-Successful new and duplicate submissions return the same receipt. Existing
-applications are never overwritten by a duplicate. The rate limiter uses the
-verified Auth user ID with a private salt, not caller-controlled IP headers.
-Supabase Auth's own OTP limits protect verification-link requests. Configure
-production SMTP, enable Confirm Email and secure email changes, and keep signup
-and email sending rate limits appropriate for the event before opening registration.
-No client-side flag can bypass these server checks.
+Applicants submit directly without email verification or an Auth account.
+Email addresses are self-reported; organizers must resolve disputed submissions
+privately. New and duplicate submissions receive the same receipt, and duplicates
+never overwrite an existing application. The rate limiter uses a salted,
+normalized email address rather than caller-controlled proxy IP headers. This
+limits repeated attempts per address but does not stop an attacker from changing
+addresses. Origin checks, honeypot, form timing, validation, and private-table
+permissions remain in place. Organizer authentication is unchanged.
