@@ -34,7 +34,7 @@ window.addEventListener("resize", () => {
   if (window.innerWidth > 860) closeMenu();
 });
 
-const eventStart = new Date("2026-11-13T00:00:00-05:00");
+const eventStart = new Date("2026-11-14T00:00:00-05:00");
 const countdown = document.querySelector(".countdown");
 const countdownFields = {
   days: document.querySelector("#countdown-days"),

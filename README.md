@@ -2,7 +2,7 @@
 
 **Ideas Assemble.**
 
-A website for CODE/CLASH, a proposed 24-hour student hackathon presented by Bit Brothers at Towson University.
+A website for CODE/CLASH, a proposed 12-hour student hackathon presented by Bit Brothers at Towson University.
 
 [Visit the website](https://codeclashtu.com/)
 
