@@ -45,6 +45,14 @@ backup.sql
 /coverage/
 node_modules/
 
+# Local test suites and fixtures
+/tests/
+/supabase/tests/
+*.test.*
+*.spec.*
+__tests__/
+fixtures/private/
+
 # Local editor and operating-system files
 .DS_Store
 Thumbs.db
