@@ -109,7 +109,7 @@
         <a href="#schedule">Schedule</a>
         <!-- Team navigation is hidden until organizer profiles are ready. -->
         <a href="#faq">FAQ</a>
-        <!-- Sponsor navigation is hidden until partners are announced. -->
+        <a href="#sponsors">Sponsors</a>
         <a href="#community-partners">Community Partners</a>
         <a class="devpost-tab" href="https://devpost.com/" target="_blank" rel="noopener noreferrer" hidden>
           Devpost <span aria-hidden="true">↗</span>
@@ -275,14 +275,34 @@
       </section>
 
       <section class="schedule-section reveal" id="schedule">
-        <div class="narration-box">12 hours. That’s it.</div>
-        <p class="eyebrow">The plot</p>
-        <h2>Three acts. One 12-hour clash.</h2>
-        <ol class="schedule">
-          <li><span>Act I</span><div><h3>The team assembles</h3><p>Check in, meet your crew, and choose a challenge.</p></div><b>OPENING ASSEMBLY</b></li>
-          <li><span>Act II</span><div><h3>The build</h3><p>Create, learn, test, and get backup from mentors.</p></div><b>BUILD SESSION</b></li>
-          <li><span>Act III</span><div><h3>The big reveal</h3><p>Demo what you made and celebrate every team.</p></div><b>FINAL SHOWDOWN</b></li>
-        </ol>
+        <div class="schedule-heading">
+          <div><p class="eyebrow">Event schedule</p><h2>Saturday, November 14.</h2></div>
+        </div>
+        <div class="schedule-timeline-shell">
+          <button class="schedule-arrow schedule-arrow-previous" id="schedule-previous" type="button" aria-label="View earlier schedule events">&#8249;</button>
+          <div class="schedule-timeline-scroll" tabindex="0" aria-label="Scrollable event schedule">
+            <ol class="event-schedule">
+          <li><time datetime="2026-11-14T09:00">9:00 AM</time><span>Arrival</span><h3>Participant check-in</h3><p>Badge pickup and team queue.</p></li>
+          <li><time datetime="2026-11-14T09:30">9:30 AM</time><span>Teams</span><h3>Live team matching</h3><p>For participants who still need a team.</p></li>
+          <li><time datetime="2026-11-14T10:00">10:00 AM</time><span>Opening</span><h3>Opening ceremony</h3></li>
+          <li><time datetime="2026-11-14T10:15">10:15 AM</time><span>Briefing</span><h3>Challenge revealed</h3><p>Rules, judging criteria, tracks, prizes, and submission requirements.</p></li>
+          <li class="schedule-card-key"><time datetime="2026-11-14T10:30">10:30 AM</time><span>Build</span><h3>Hacking begins</h3></li>
+          <li><time datetime="2026-11-14T12:00">12:00 PM</time><span>Break</span><h3>Lunch</h3></li>
+          <li><time datetime="2026-11-14T14:00">2:00 PM</time><span>Checkpoint</span><h3>Team checkpoint</h3></li>
+          <li><time datetime="2026-11-14T15:00">3:00 PM</time><span>Activity</span><h3>Mini-challenge</h3></li>
+          <li><time datetime="2026-11-14T16:00">4:00 PM</time><span>Build</span><h3>Open hacking</h3></li>
+          <li><time datetime="2026-11-14T17:30">5:30 PM</time><span>Warning</span><h3>Final troubleshooting</h3><p>Submission deadline reminder.</p></li>
+          <li class="schedule-card-key"><time datetime="2026-11-14T18:00">6:00 PM</time><span>Deadline</span><h3>Hacking ends</h3><p>Project submissions are due.</p></li>
+          <li><time datetime="2026-11-14T18:00">6:00–7:30 PM</time><span>Judging</span><h3>Team presentations and judging</h3><p>Judges remain seated while teams present one at a time.</p></li>
+          <li><time datetime="2026-11-14T19:30">7:30–8:00 PM</time><span>Break</span><h3>Judges deliberate</h3><p>Participants can network, view projects, take a break, or clean their stations.</p></li>
+          <li class="schedule-card-key"><time datetime="2026-11-14T20:00">8:00 PM</time><span>Finale</span><h3>Closing ceremony</h3><p>Awards announced.</p></li>
+          <li><time datetime="2026-11-14T20:00">8:00–9:00 PM</time><span>Community</span><h3>Group photograph</h3><p>Participant dismissal follows.</p></li>
+          <li><time datetime="2026-11-14T21:00">9:00 PM</time><span>Organizers</span><h3>Cleanup</h3></li>
+          <li class="schedule-card-dark"><time datetime="2026-11-14T21:30">9:30 PM</time><span>Complete</span><h3>Event complete</h3></li>
+            </ol>
+          </div>
+          <button class="schedule-arrow schedule-arrow-next" id="schedule-next" type="button" aria-label="View later schedule events">&#8250;</button>
+        </div>
       </section>
 
       <!-- Meet the Team: restore this section when organizer profiles and photos are ready.
@@ -344,7 +364,6 @@
         </div>
       </section>
 
-      <!-- Sponsors: restore this section when confirmed sponsor information is ready.
       <section class="sponsors-section reveal" id="sponsors">
         <div class="sponsors-heading">
           <div>
@@ -352,20 +371,32 @@
             <h2>Powered by our sponsors.</h2>
           </div>
           <p>
-            Our partners help keep the hackathon free, welcoming, and packed
-            with resources for every participant.
+            Code/Clash is made possible by an incredible group of partners who
+            believe in builders, bold ideas, and a stronger collegiate tech community.
           </p>
         </div>
-        <div class="sponsor-grid" aria-label="Sponsor logo placeholders">
-          <div class="sponsor-logo sponsor-featured"><span>Your logo</span><small>Presenting sponsor</small></div>
-          <div class="sponsor-logo"><span>Sponsor</span><small>Gold partner</small></div>
-          <div class="sponsor-logo"><span>Sponsor</span><small>Gold partner</small></div>
-          <div class="sponsor-logo"><span>Sponsor</span><small>Community partner</small></div>
-          <div class="sponsor-logo"><span>Sponsor</span><small>Community partner</small></div>
+
+        <div class="sponsor-lineup-heading">
+          <p class="eyebrow">Sponsor lineup</p>
+          <a class="sponsor-link" href="https://www.instagram.com/bitbrotherstu/" target="_blank" rel="noopener noreferrer">Become a sponsor <span aria-hidden="true">↗</span></a>
         </div>
-        <a class="sponsor-link" href="mailto:hello@example.com">Become a sponsor <span>→</span></a>
+        <div class="sponsor-grid" aria-label="Available sponsor placements">
+          <article class="sponsor-logo sponsor-featured">
+            <div class="sponsor-featured-copy">
+              <a class="sponsor-logo-link" href="https://nextgencollar.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit NextGen Collar"><img class="sponsor-featured-logo" src="assets/nextgen-collar-logo.png" alt="NextGen Collar — Bridge the Gap" /></a>
+              <p>A nonprofit helping people build technology careers through training, mentorship, and scholarships.</p>
+            </div>
+          </article>
+          <!-- Future sponsor cards:
+          <article class="sponsor-logo"><small>Gold partner</small><strong>Your brand</strong><p>Fund tools, prizes, and build support.</p></article>
+          <article class="sponsor-logo"><small>Technology partner</small><strong>Your brand</strong><p>Put powerful tools in student hands.</p></article>
+          <article class="sponsor-logo"><small>Community partner</small><strong>Your brand</strong><p>Help more creators join the clash.</p></article>
+          <article class="sponsor-logo"><small>Experience partner</small><strong>Your brand</strong><p>Fuel a welcoming day of building.</p></article>
+          <article class="sponsor-logo"><small>Prize partner</small><strong>Your brand</strong><p>Reward clever ideas and bold execution.</p></article>
+          <article class="sponsor-logo"><small>Workshop partner</small><strong>Your brand</strong><p>Share practical skills with every builder.</p></article>
+          -->
+        </div>
       </section>
-      -->
 
       <section class="community-partners-section reveal" id="community-partners">
         <div class="community-partners-heading">
@@ -458,7 +489,7 @@
         <a href="#schedule">Schedule</a>
         <!-- Team navigation is hidden until organizer profiles are ready. -->
         <a href="#faq">FAQ</a>
-        <!-- Sponsor navigation is hidden until partners are announced. -->
+        <a href="#sponsors">Sponsors</a>
         <a href="#community-partners">Community Partners</a>
         <a class="footer-social" href="https://www.instagram.com/bitbrotherstu/" target="_blank" rel="noopener noreferrer" aria-label="Follow Bit Brothers on Instagram">Instagram · @bitbrotherstu <span aria-hidden="true">↗</span></a>
       </nav>

@@ -282,6 +282,31 @@ Deno.serve(async (request) => {
       return respond(200, { applications: exportRows }, origin);
     }
 
+    if (action === "teamMembers") {
+      const id = uuid(body.id);
+      if (!id) return respond(422, { error: "A valid team ID is required." }, origin);
+      const [team, invite, memberships] = await Promise.all([
+        admin.from("public_teams").select("id").eq("id", id).maybeSingle(),
+        admin.from("team_invites").select("owner_application_id").eq("public_team_id", id).is("revoked_at", null).maybeSingle(),
+        admin.from("team_join_requests").select("application_id,desired_role").eq("public_team_id", id).eq("status", "approved"),
+      ]);
+      if (team.error || invite.error || memberships.error) throw team.error || invite.error || memberships.error;
+      if (!team.data) return respond(404, { error: "Team not found." }, origin);
+      const ownerId = invite.data?.owner_application_id || null;
+      const roleByApplication = new Map((memberships.data || []).map((membership) => [membership.application_id, membership.desired_role]));
+      const applicationIds = [...new Set([...(ownerId ? [ownerId] : []), ...roleByApplication.keys()])];
+      if (!applicationIds.length) return respond(200, { members: [] }, origin);
+      const { data, error } = await admin.from("applications")
+        .select("id,full_name,school_email,desired_roles,public_board_consent")
+        .in("id", applicationIds).order("full_name");
+      if (error) throw error;
+      return respond(200, { members: (data || []).map((application) => ({
+        id: application.id, full_name: application.full_name, school_email: application.school_email,
+        public_board_consent: application.public_board_consent, is_creator: application.id === ownerId,
+        role: roleByApplication.get(application.id) || application.desired_roles?.[0] || "Unassigned",
+      })) }, origin);
+    }
+
     if (action === "saveTeam") {
       const id = body.id ? uuid(body.id) : null;
       if (body.id && !id) return respond(422, { error: "Invalid team ID." }, origin);
@@ -322,10 +347,10 @@ Deno.serve(async (request) => {
     if (action === "deleteTeam") {
       const id = uuid(body.id);
       if (!id || body.confirmation !== "DELETE") return respond(422, { error: "Explicit deletion confirmation is required." }, origin);
-      const { data, error } = await admin.from("public_teams").delete().eq("id", id).select("id").maybeSingle();
+      const { error } = await admin.rpc("delete_public_team", { team_id: id, reviewer });
+      if (error?.code === "P0001") return respond(404, { error: error.message }, origin);
       if (error) throw error;
-      if (!data) return respond(404, { error: "Team not found." }, origin);
-      return respond(200, { message: "Team deleted." }, origin);
+      return respond(200, { message: "Team deleted. Its applicants were returned to solo status." }, origin);
     }
 
     // Organizer access is intentionally not mutable through this endpoint.

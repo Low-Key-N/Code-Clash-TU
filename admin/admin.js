@@ -295,7 +295,8 @@ function teamCard(team) {
   const header = document.createElement("header");
   header.append(element("h2", "", team.team_name), statusPill(team.publication_status));
   const details = document.createElement("dl");
-  [["Members", `${team.occupied_slots}/${team.capacity}`], ["Public names", (team.member_first_names || []).join(", ") || "None"], ["Seeking", (team.roles_needed || []).join(", ") || "None"], ["Updated", formatDate(team.updated_at)]].forEach(([term, value]) => details.append(element("dt", "", term), element("dd", "", value)));
+  const publicRoster = (team.member_first_names || []).map((name, index) => `${name} · ${team.member_roles[index]}`).join(", ") || "None";
+  [["Members", `${team.occupied_slots}/${team.capacity}`], ["Public roster", publicRoster], ["Seeking", (team.roles_needed || []).join(", ") || "None"], ["Updated", formatDate(team.updated_at)]].forEach(([term, value]) => details.append(element("dt", "", term), element("dd", "", value)));
   const actions = element("div", "card-actions");
   const edit = element("button", "row-button", "Edit"); edit.type = "button"; edit.dataset.teamAction = "edit"; edit.dataset.teamId = team.id; actions.append(edit);
   const publicationAction = team.publication_status === "published" ? "archive" : "publish";
@@ -320,7 +321,7 @@ function memberRow(name = "", role = "Builder") {
   return row;
 }
 
-function openTeam(team = null) {
+async function openTeam(team = null) {
   teamForm.reset();
   teamForm.elements.id.value = team?.id || "";
   teamForm.elements.teamName.value = team?.team_name || "";
@@ -332,17 +333,43 @@ function openTeam(team = null) {
   const editor = document.querySelector("#member-editor"); editor.replaceChildren();
   (team?.member_first_names || []).forEach((name, index) => editor.append(memberRow(name, team.member_roles[index])));
   document.querySelectorAll('#roles-needed input[type="checkbox"]').forEach((box) => { box.checked = Boolean(team?.roles_needed?.includes(box.value)); });
+  const registeredFieldset = document.querySelector("#registered-members-fieldset");
+  const registeredList = document.querySelector("#registered-member-list");
+  registeredFieldset.hidden = !team;
+  registeredList.replaceChildren();
+  if (team) registeredList.append(element("p", "field-help", "Loading registered participants…"));
   teamDialog.showModal();
+  if (!team) return;
+  try {
+    const { members } = await adminRequest("teamMembers", { id: team.id });
+    if (teamForm.elements.id.value !== team.id) return;
+    registeredList.replaceChildren(...members.map((member) => {
+      const row = element("div", "registered-member");
+      const identity = document.createElement("div");
+      identity.append(element("strong", "", member.full_name), element("small", "", `${member.role} · ${member.school_email}${member.is_creator ? " · Team creator" : ""}${member.public_board_consent ? " · Public display approved" : " · Keep private"}`));
+      const manage = element("button", "row-button", "Manage");
+      manage.type = "button"; manage.dataset.manageApplication = member.id;
+      row.append(identity, manage);
+      return row;
+    }));
+    if (!members.length) registeredList.append(element("p", "field-help", "No registered applications are assigned to this team yet."));
+  } catch (error) {
+    registeredList.replaceChildren(element("p", "form-status is-error", error.message));
+  }
 }
 
 function teamPayload() {
+  const members = [...document.querySelectorAll(".member-row")].map((row) => ({
+    name: row.querySelector("[data-member-name]").value.trim(),
+    role: row.querySelector("[data-member-role]").value,
+  })).filter((member) => member.name);
   return {
     id: teamForm.elements.id.value || undefined,
     teamName: teamForm.elements.teamName.value,
     projectInterests: teamForm.elements.projectInterests.value,
     capacity: Number(teamForm.elements.capacity.value), occupiedSlots: Number(teamForm.elements.occupiedSlots.value), displayOrder: Number(teamForm.elements.displayOrder.value),
-    memberFirstNames: [...document.querySelectorAll("[data-member-name]")].map((input) => input.value),
-    memberRoles: [...document.querySelectorAll("[data-member-role]")].map((select) => select.value),
+    memberFirstNames: members.map((member) => member.name),
+    memberRoles: members.map((member) => member.role),
     rolesNeeded: [...document.querySelectorAll('#roles-needed input[type="checkbox"]:checked')].map((box) => box.value),
   };
 }
@@ -521,13 +548,19 @@ document.querySelector("#export-csv").addEventListener("click", (event) => expor
 document.querySelector("#new-team").addEventListener("click", () => openTeam());
 document.querySelector("#add-member").addEventListener("click", () => document.querySelector("#member-editor").append(memberRow()));
 document.querySelector("#member-editor").addEventListener("click", (event) => { if (event.target.matches("[data-remove-member]")) event.target.closest(".member-row").remove(); });
+document.querySelector("#registered-member-list").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-manage-application]");
+  if (!button) return;
+  teamDialog.close();
+  openApplication(button.dataset.manageApplication);
+});
 
 document.querySelector("#team-list").addEventListener("click", async (event) => {
   const button = event.target.closest("[data-team-action]"); if (!button) return;
   const team = state.teams.find((item) => item.id === button.dataset.teamId); if (!team) return;
   if (button.dataset.teamAction === "edit") { openTeam(team); return; }
   const action = button.dataset.teamAction;
-  if (action === "delete" && !confirm(`Delete ${team.team_name}? This also removes its invite and join-request records. This cannot be undone.`)) return;
+  if (action === "delete" && !confirm(`Delete ${team.team_name}? Its assigned applicants will return to solo status, and its invite and join-request records will be removed. This cannot be undone.`)) return;
   if (action === "publish" && !confirm(`Publish ${team.team_name} to the public website? Confirm that every displayed field is approved.`)) return;
   if (action === "archive" && !confirm(`Archive ${team.team_name} and remove it from the public website?`)) return;
   setBusy(button, true);

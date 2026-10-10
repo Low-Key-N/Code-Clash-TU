@@ -94,7 +94,7 @@
           </section>
 
           <section class="dashboard-panel" id="teams-panel" data-panel="teams" hidden>
-            <div class="section-actions"><p>Only reviewed first names and approved public details belong here.</p><button class="comic-button" id="new-team" type="button">Create team</button></div>
+            <div class="section-actions"><p>Create teams, rename them, manage their rosters, and publish or delete them here.</p><button class="comic-button" id="new-team" type="button">Create team</button></div>
             <div class="team-list" id="team-list"></div>
             <div class="empty-state" id="teams-empty" hidden><strong>No teams yet.</strong><span>Create a private draft to start assembling.</span></div>
           </section>
@@ -152,7 +152,8 @@
         <label>Team name<input name="teamName" maxlength="80" required /></label>
         <label>Approved project interests<textarea name="projectInterests" maxlength="300" rows="3"></textarea></label>
         <div class="form-grid"><label>Capacity<input name="capacity" type="number" min="2" max="8" value="4" required /></label><label>Occupied slots<input name="occupiedSlots" type="number" min="0" max="8" value="0" required /></label><label>Display order<input name="displayOrder" type="number" value="0" required /></label></div>
-        <fieldset><legend>Public team members</legend><p class="field-help">Use only approved first names. Every member needs a role.</p><div id="member-editor"></div><button class="secondary-button" id="add-member" type="button">+ Add member</button></fieldset>
+        <fieldset id="registered-members-fieldset" hidden><legend>Registered participants</legend><p class="field-help">These are the applications actually assigned to this team. Open a participant to move or remove them.</p><div class="registered-member-list" id="registered-member-list" aria-live="polite"></div></fieldset>
+        <fieldset><legend>Public website roster</legend><p class="field-help">Use only approved first names. This controls what visitors see; every displayed member needs a role.</p><div id="member-editor"></div><button class="secondary-button" id="add-member" type="button">+ Add public member</button></fieldset>
         <fieldset><legend>Roles still needed</legend><div class="role-choices" id="roles-needed"></div></fieldset>
         <div class="dialog-actions"><button class="comic-button" type="submit">Save team</button></div>
       </form>

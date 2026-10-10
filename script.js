@@ -133,6 +133,36 @@ assemblyTabs.forEach((tab, index) => {
   });
 });
 
+const scheduleScroller = document.querySelector(".schedule-timeline-scroll");
+const schedulePrevious = document.querySelector("#schedule-previous");
+const scheduleNext = document.querySelector("#schedule-next");
+
+if (scheduleScroller && schedulePrevious && scheduleNext) {
+  function updateScheduleControls() {
+    const maximumScroll = scheduleScroller.scrollWidth - scheduleScroller.clientWidth;
+    schedulePrevious.disabled = scheduleScroller.scrollLeft <= 2;
+    scheduleNext.disabled = scheduleScroller.scrollLeft >= maximumScroll - 2;
+  }
+
+  function moveThroughSchedule(direction) {
+    scheduleScroller.scrollBy({
+      left: direction * Math.max(268, scheduleScroller.clientWidth * 0.75),
+      behavior: prefersReducedMotion.matches ? "auto" : "smooth",
+    });
+  }
+
+  schedulePrevious.addEventListener("click", () => moveThroughSchedule(-1));
+  scheduleNext.addEventListener("click", () => moveThroughSchedule(1));
+  scheduleScroller.addEventListener("scroll", updateScheduleControls, { passive: true });
+  window.addEventListener("resize", updateScheduleControls);
+  window.addEventListener("pageshow", () => {
+    scheduleScroller.scrollLeft = 0;
+    updateScheduleControls();
+  });
+  scheduleScroller.scrollLeft = 0;
+  updateScheduleControls();
+}
+
 const teamQueue = document.querySelector("#team-queue");
 const assembledTeamCount = document.querySelector("#assembled-team-count");
 const roleInitials = { Builder: "B", Defender: "D", Analyst: "A", Designer: "D", Strategist: "S" };
