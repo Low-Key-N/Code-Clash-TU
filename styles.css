@@ -1677,13 +1677,8 @@ footer p { margin: 0; }
   .team-queue { grid-template-columns: 1fr; }
   .schedule-section { padding: 38px 20px 30px; }
   .schedule-heading { grid-template-columns: 1fr; align-items: start; gap: 16px; }
-  .schedule-timeline-shell { margin-inline: 0; }
-  .schedule-arrow { display: none; }
-  .schedule-timeline-scroll { overflow: visible; padding: 0; }
-  .event-schedule { display: grid; grid-template-columns: 1fr; grid-template-rows: none; gap: 14px; width: 100%; min-width: 0; padding: 0; }
-  .event-schedule::before { display: none; }
-  .event-schedule li:nth-child(n) { grid-column: 1; grid-row: auto; min-height: 0; align-self: stretch; }
-  .event-schedule li::before, .event-schedule li::after { display: none; }
+  .schedule-timeline-shell { margin-inline: -20px; }
+  .schedule-timeline-scroll { padding-inline: 20px; }
   .team-grid { grid-template-columns: 1fr 1fr; }
   .team-photo { height: 190px; }
   .bubble-grid { grid-template-columns: 1fr; gap: 42px; }
