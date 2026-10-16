@@ -74,11 +74,15 @@ Deno.serve(async (request) => {
   const rolesNeeded = uniqueAllowedRoles(body.rolesNeeded);
   const teamLookup = optional(body.teamLookup, 80);
   const joinRole = clean(body.joinRole, 20);
+  const dietaryRestrictionStatus = clean(body.dietaryRestrictionStatus, 20);
+  const dietaryRestrictions = optional(body.dietaryRestrictions, 500);
 
   const invalid = fullName.length < 2 || !isEmail(schoolEmail) || school.length < 2 || !major ||
     !Number.isInteger(graduationYear) || graduationYear < 2026 || graduationYear > 2035 ||
     !allowedExperience.includes(experienceLevel) || !desiredRoles.length || projectInterests.length < 10 ||
     !allowedTeamStatus.includes(teamStatus) || body.agreeToRules !== true || body.confirmAccurate !== true ||
+    !["none", "has-restrictions"].includes(dietaryRestrictionStatus) ||
+    (dietaryRestrictionStatus === "has-restrictions" && !dietaryRestrictions) ||
     (teamStatus === "creating" && (!proposedTeamName || !rolesNeeded.length)) ||
     (teamStatus === "joining" && (!teamLookup || !(allowedRoles as readonly string[]).includes(joinRole) || !(desiredRoles as readonly string[]).includes(joinRole)));
   if (invalid) return json(422, { error: "Check the required fields and try again." }, origin);
@@ -118,7 +122,7 @@ Deno.serve(async (request) => {
     proposed_team_name: teamStatus === "creating" ? proposedTeamName : null,
     roles_needed: teamStatus === "creating" ? rolesNeeded : [], team_lookup: teamStatus === "joining" ? "Invite validated" : null,
     phone: optional(body.phone, 30), pronouns: optional(body.pronouns, 50),
-    dietary_restrictions: optional(body.dietaryRestrictions, 500),
+    dietary_restrictions: dietaryRestrictionStatus === "has-restrictions" ? dietaryRestrictions : "None",
     accessibility_accommodations: optional(body.accessibilityAccommodations, 1000), portfolio_url: portfolioUrl,
     public_board_consent: body.publicBoardConsent === true, marketing_consent: body.marketingConsent === true,
     agreed_to_rules_at: now, confirmed_accurate_at: now,

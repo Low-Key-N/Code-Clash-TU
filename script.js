@@ -351,9 +351,28 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
     syncJoinRoleOptions();
   }
 
+  function updateDietaryFields() {
+    const hasRestrictions = applicationForm.elements.dietaryRestrictionStatus.value === "has-restrictions";
+    const details = applicationForm.querySelector("[data-dietary-restrictions]");
+    const textarea = applicationForm.elements.dietaryRestrictions;
+    details.hidden = !hasRestrictions;
+    textarea.disabled = !hasRestrictions;
+    textarea.required = hasRestrictions;
+    validateDietaryRestrictions();
+  }
+
+  function validateDietaryRestrictions() {
+    const hasRestrictions = applicationForm.elements.dietaryRestrictionStatus.value === "has-restrictions";
+    const textarea = applicationForm.elements.dietaryRestrictions;
+    textarea.setCustomValidity(hasRestrictions && !textarea.value.trim() ? "Please describe your dietary restrictions." : "");
+  }
+
   applicationForm.querySelectorAll('[name="teamStatus"]').forEach((field) => field.addEventListener("change", updateTeamFields));
   applicationForm.querySelectorAll('[name="desiredRoles"]').forEach((field) => field.addEventListener("change", syncJoinRoleOptions));
+  applicationForm.querySelectorAll('[name="dietaryRestrictionStatus"]').forEach((field) => field.addEventListener("change", updateDietaryFields));
+  applicationForm.elements.dietaryRestrictions.addEventListener("input", validateDietaryRestrictions);
   updateTeamFields();
+  updateDietaryFields();
 
   applicationForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -414,6 +433,7 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
       startedAt.value = String(Date.now());
       validateProjectInterests();
       updateTeamFields();
+      updateDietaryFields();
       statusMessage.textContent = result.message || "Application received. Organizers will review your team placement.";
     } catch (error) {
       statusMessage.textContent = error.message || "We could not submit your application. Please try again.";

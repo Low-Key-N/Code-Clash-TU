@@ -464,7 +464,17 @@
             <label>Pronouns <span>(optional/private)</span><input name="pronouns" type="text" maxlength="50" /></label>
             <label>Portfolio, GitHub, or LinkedIn URL <span>(optional)</span><input name="portfolioUrl" type="url" inputmode="url" maxlength="500" placeholder="https://" /></label>
           </div>
-          <label>Dietary restrictions <span>(optional/private)</span><textarea name="dietaryRestrictions" maxlength="500"></textarea></label>
+          <fieldset>
+            <legend>Dietary restrictions *</legend>
+            <span class="field-help" id="dietary-restrictions-help">This response is private and helps organizers plan meals safely.</span>
+            <div class="choice-grid" aria-describedby="dietary-restrictions-help">
+              <label><input name="dietaryRestrictionStatus" type="radio" value="none" required /> I do not have dietary restrictions</label>
+              <label><input name="dietaryRestrictionStatus" type="radio" value="has-restrictions" /> I have dietary restrictions</label>
+            </div>
+            <div class="conditional-fields" data-dietary-restrictions hidden>
+              <label>Please describe your dietary restrictions *<textarea name="dietaryRestrictions" maxlength="500" aria-describedby="dietary-details-help"></textarea><span class="field-help" id="dietary-details-help">Include allergies, intolerances, or dietary practices organizers should account for.</span></label>
+            </div>
+          </fieldset>
           <label>Accessibility accommodations <span>(optional/private)</span><textarea name="accessibilityAccommodations" maxlength="1000"></textarea></label>
           <div class="form-agreements">
             <label><input name="agreeToRules" type="checkbox" required /> I agree to the event rules and code of conduct. *</label>
