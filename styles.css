@@ -1761,7 +1761,15 @@ footer p { margin: 0; }
   .standings-watermark { display: none; }
   .standings-shell { margin-left: 0; padding: 32px 16px 24px; }
   .standings-header { grid-template-columns: 1fr; gap: 18px; }
-  .standings-table { overflow-x: auto; }
+  .standings-table {
+    overflow-x: scroll;
+    scrollbar-color: var(--tu-gold) var(--tu-white);
+    scrollbar-gutter: stable;
+    scrollbar-width: auto;
+  }
+  .standings-table::-webkit-scrollbar { height: 12px; }
+  .standings-table::-webkit-scrollbar-track { border-top: 2px solid var(--ink); background: var(--tu-white); }
+  .standings-table::-webkit-scrollbar-thumb { border: 2px solid var(--ink); background: var(--tu-gold); }
   .standings-table-head, .standings-row { min-width: 460px; }
   .standings-footer { grid-template-columns: 1fr; }
   .section-heading { grid-template-columns: 1fr; gap: 10px; }
