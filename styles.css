@@ -894,7 +894,7 @@ nav a { font-size: .8rem; font-weight: 900; text-decoration: none; text-transfor
 .countdown-units i { color: var(--tu-gold); font-size: 1.2rem; font-style: normal; font-weight: 900; }
 .comic-button { display: inline-flex; gap: 18px; align-items: center; margin-top: 10px; padding: 12px 16px; border: 3px solid var(--ink); background: var(--tu-gold); color: var(--ink); box-shadow: 5px 5px 0 var(--ink); font-size: .9rem; font-weight: 900; text-decoration: none; text-shadow: none; text-transform: uppercase; transform: rotate(-1deg); }
 
-.intro-panel, .roles-section, .schedule-section, .team-section, .faq-section, footer {
+.intro-panel, .club-standings-section, .roles-section, .schedule-section, .team-section, .faq-section, footer {
   width: min(1050px, calc(100% - 40px));
   margin-inline: auto;
 }
@@ -927,6 +927,83 @@ h2 { margin-bottom: 20px; font-size: clamp(2.3rem, 5vw, 4.3rem); font-style: ita
 }
 .origin-right .speech-bubble p { font-size: .86rem; }
 .origin-right .speech-bubble strong { font-size: .82rem; }
+
+.club-standings-section {
+  position: relative;
+  margin-block: 72px 95px;
+  overflow: hidden;
+  border: 4px solid var(--ink);
+  background-color: var(--tu-white);
+  background-image: radial-gradient(rgba(21,21,0,.18) .8px, transparent .8px);
+  background-size: 7px 7px;
+  box-shadow: 8px 8px 0 var(--tu-gold);
+}
+.standings-watermark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  color: var(--tu-gold);
+  pointer-events: none;
+}
+.standings-watermark span {
+  display: block;
+  font-size: clamp(2.9rem, 4.5vw, 3.5rem);
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -.035em;
+  line-height: .85;
+  opacity: .72;
+  white-space: nowrap;
+  text-transform: uppercase;
+  transform: rotate(-90deg);
+}
+.standings-shell { position: relative; z-index: 1; margin-left: clamp(38px, 6vw, 70px); padding: 42px 34px 34px; }
+.standings-header { display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: end; margin-bottom: 28px; }
+.standings-header h2 { margin-bottom: 8px; font-size: clamp(2.2rem, 4.8vw, 4rem); }
+.standings-deck { margin: 0; font-weight: 900; }
+.standings-tabs { align-items: stretch; }
+.standings-table { border: 2px solid rgba(21,21,0,.74); background: rgba(255,255,255,.22); }
+.standings-table-head,
+.standings-row {
+  display: grid;
+  grid-template-columns: 150px minmax(160px, 1fr) 150px;
+  align-items: center;
+}
+.standings-table-head { min-height: 34px; border-bottom: 3px solid var(--ink); color: var(--tu-old-gold); font-size: .66rem; font-weight: 900; text-transform: uppercase; }
+.standings-table-head span,
+.standings-row > span { padding: 8px 12px; text-align: center; }
+.standings-table-head span { display: flex; align-self: stretch; align-items: center; justify-content: center; }
+.standings-table-head span:last-child,
+.standings-row > span:last-child { padding-right: 18px; text-align: right; }
+.standings-table-head span:last-child { justify-content: flex-end; }
+.standings-table-head span + span { position: relative; }
+.standings-table-head span + span::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: repeating-linear-gradient(to bottom, var(--tu-gold) 0 3px, transparent 3px 6px);
+}
+.standings-row > span + span { border-left: 1px dashed var(--tu-gold); }
+.standings-row { min-height: 68px; border-bottom: 2px solid rgba(21,21,0,.72); transition: background-color .18s ease, color .18s ease; }
+.standings-row:last-child { border-bottom: 0; }
+.standings-row.is-leading { background: var(--tu-gold); }
+.standings-rank { font-size: 1.55rem; font-style: italic; font-weight: 900; }
+.standings-club { display: flex; gap: 10px; align-items: center; text-align: left !important; font-size: 1.08rem; font-weight: 900; }
+.club-marker { width: 16px; height: 16px; flex: 0 0 auto; border: 2px solid var(--ink); background: var(--tu-gold); box-shadow: 2px 2px 0 var(--ink); transform: rotate(45deg); }
+.standings-count { font-size: 1.25rem; font-weight: 900; }
+.standings-count.is-primary { color: var(--tu-old-gold); font-size: 1.55rem; }
+.standings-state { padding: 28px; font-weight: 900; text-align: center; }
+.standings-footer { display: grid; grid-template-columns: .8fr 1.5fr; gap: 12px 28px; margin-top: 26px; padding-top: 22px; border-top: 3px solid var(--ink); }
+.standings-footer p { margin: 0; }
+.standings-footer strong { font-size: 1.25rem; font-style: italic; text-transform: uppercase; }
 
 .roles-section, .team-section, .faq-section {
   margin-block: 95px;
@@ -1559,7 +1636,9 @@ footer p { margin: 0; }
   .cover-copy h1 { font-size: clamp(4.2rem, 8vw, 6.4rem); }
   .cover-copy > p.cover-tagline { font-size: clamp(2.1rem, 4.5vw, 3.4rem); }
   .intro-panel { grid-template-columns: .9fr 1.1fr; }
-  .roles-section, .team-section, .faq-section, .sponsors-section, .community-partners-section { width: min(94%, 920px); }
+  .club-standings-section, .roles-section, .team-section, .faq-section, .sponsors-section, .community-partners-section { width: min(94%, 920px); }
+  .standings-header { grid-template-columns: 1fr; }
+  .standings-tabs { justify-self: start; }
 }
 
 @media (max-width: 860px) and (min-width: 721px) {
@@ -1678,6 +1757,13 @@ footer p { margin: 0; }
   .intro-panel { grid-template-columns: 1fr; gap: 18px; padding: 58px 18px 24px; }
   .origin-copy { padding: 16px; }
   .origin-copy > p { font-size: .96rem; }
+  .club-standings-section { width: calc(100% - 24px); margin-block: 58px 68px; }
+  .standings-watermark { display: none; }
+  .standings-shell { margin-left: 0; padding: 32px 16px 24px; }
+  .standings-header { grid-template-columns: 1fr; gap: 18px; }
+  .standings-table { overflow-x: auto; }
+  .standings-table-head, .standings-row { min-width: 460px; }
+  .standings-footer { grid-template-columns: 1fr; }
   .section-heading { grid-template-columns: 1fr; gap: 10px; }
   .section-heading .eyebrow { grid-column: auto; margin-bottom: 8px; }
   .roles-section, .team-section, .faq-section { margin-block: 68px; padding: 48px 20px; }

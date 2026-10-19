@@ -259,8 +259,129 @@ async function loadPublicTeams() {
 
 loadPublicTeams();
 
+const clubStandingsTable = document.querySelector("#club-ranking-table");
+const clubStandingsRows = document.querySelector("#club-standings-rows");
+const clubStandingsScoreHeading = document.querySelector("#standings-score-heading");
+const clubStandingsTabs = [...document.querySelectorAll("[data-standings-sort]")];
+const studentOrganizationSelect = document.querySelector("#student-organization");
+let clubStandings = [];
+let clubStandingsSort = "registered";
+
+function renderClubStandings() {
+  if (!clubStandingsRows) return;
+  const scoreKey = clubStandingsSort === "submissions" ? "submissions" : "registered";
+  if (clubStandingsScoreHeading) clubStandingsScoreHeading.textContent = scoreKey === "registered" ? "Registered" : "Final submissions";
+  const sortedClubs = clubStandings.filter((club) => Number(club[scoreKey]) > 0).sort((a, b) =>
+    Number(b[scoreKey]) - Number(a[scoreKey]) || Number(b.registered) - Number(a.registered) || a.name.localeCompare(b.name),
+  );
+  if (!sortedClubs.length) {
+    const state = document.createElement("div");
+    state.className = "standings-state";
+    state.setAttribute("role", "row");
+    const message = document.createElement("span");
+    message.setAttribute("role", "cell");
+    message.textContent = scoreKey === "registered" ? "No organizations have registered members yet." : "No qualifying submissions yet.";
+    state.append(message);
+    clubStandingsRows.replaceChildren(state);
+    return;
+  }
+
+  const leadingScore = Math.max(...sortedClubs.map((club) => Number(club[scoreKey]) || 0));
+  const rows = sortedClubs.map((club, index) => {
+    const row = document.createElement("div");
+    const score = Number(club[scoreKey]) || 0;
+    row.className = `standings-row${leadingScore > 0 && score === leadingScore ? " is-leading" : ""}`;
+    row.setAttribute("role", "row");
+
+    const rank = document.createElement("span");
+    rank.className = "standings-rank";
+    rank.setAttribute("role", "cell");
+    rank.textContent = ["🥇", "🥈", "🥉"][index] || String(index + 1).padStart(2, "0");
+
+    const name = document.createElement("span");
+    name.className = "standings-club";
+    name.setAttribute("role", "cell");
+    const marker = document.createElement("i");
+    marker.className = "club-marker";
+    marker.setAttribute("aria-hidden", "true");
+    const label = document.createElement("span");
+    label.textContent = club.name;
+    name.append(marker, label);
+
+    const total = document.createElement("span");
+    total.className = "standings-count is-primary";
+    total.setAttribute("role", "cell");
+    total.setAttribute("aria-label", `${score} ${scoreKey === "registered" ? "registered members" : "final submissions"}`);
+    total.textContent = String(score);
+    row.append(rank, name, total);
+    return row;
+  });
+  clubStandingsRows.replaceChildren(...rows);
+}
+
+function populateClubSelect(clubs) {
+  if (!studentOrganizationSelect) return;
+  const selected = studentOrganizationSelect.value;
+  const none = document.createElement("option");
+  none.value = "";
+  none.textContent = "None / not affiliated";
+  const options = clubs.map((club) => {
+    const option = document.createElement("option");
+    option.value = club.slug;
+    option.textContent = club.name;
+    return option;
+  });
+  studentOrganizationSelect.replaceChildren(none, ...options);
+  if ([...studentOrganizationSelect.options].some((option) => option.value === selected)) studentOrganizationSelect.value = selected;
+}
+
+clubStandingsTabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => {
+    clubStandingsSort = tab.dataset.standingsSort;
+    clubStandingsTabs.forEach((item) => {
+      const active = item === tab;
+      item.setAttribute("aria-selected", String(active));
+      item.tabIndex = active ? 0 : -1;
+    });
+    renderClubStandings();
+  });
+  tab.addEventListener("keydown", (event) => {
+    if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+    event.preventDefault();
+    const next = clubStandingsTabs[(index + (event.key === "ArrowRight" ? 1 : -1) + clubStandingsTabs.length) % clubStandingsTabs.length];
+    next.focus();
+    next.click();
+  });
+});
+
+async function loadClubStandings() {
+  const config = window.SUPABASE_CONFIG;
+  if (!clubStandingsTable || !clubStandingsRows || !config?.url) return;
+  try {
+    const response = await fetch(`${config.url}/functions/v1/club-standings`);
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !Array.isArray(result.clubs)) throw new Error();
+    clubStandings = result.clubs;
+    populateClubSelect(clubStandings);
+    renderClubStandings();
+  } catch {
+    const state = document.createElement("div");
+    state.className = "standings-state";
+    state.setAttribute("role", "row");
+    const message = document.createElement("span");
+    message.setAttribute("role", "cell");
+    message.textContent = "Standings are temporarily unavailable. Check back soon.";
+    state.append(message);
+    clubStandingsRows.replaceChildren(state);
+  } finally {
+    clubStandingsTable.setAttribute("aria-busy", "false");
+  }
+}
+
+loadClubStandings();
+
 const sceneSections = document.querySelectorAll(
-  ".comic-cover, #about, #roles, #schedule, #team, #faq, #sponsors, #community-partners, #register",
+  ".comic-cover, #about, #club-standings, #roles, #schedule, #team, #faq, #sponsors, #community-partners, #register",
 );
 
 let sceneUpdateQueued = false;

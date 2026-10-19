@@ -105,6 +105,7 @@
         <strong>Menu</strong>
       </button>
       <nav id="primary-nav" aria-label="Main navigation">
+        <a href="#club-standings">Leaderboard</a>
         <a href="#roles">Roles</a>
         <a href="#schedule">Schedule</a>
         <!-- Team navigation is hidden until organizer profiles are ready. -->
@@ -192,6 +193,39 @@
           <div class="speech-bubble">
             <p>“Wait—do I need to be an expert?”</p>
             <strong>Nope! Beginners belong here, too.</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="club-standings-section reveal" id="club-standings" aria-labelledby="club-standings-title">
+        <div class="standings-watermark" aria-hidden="true"><span>LEADERBOARD</span></div>
+        <div class="standings-shell">
+          <header class="standings-header">
+            <div>
+              <p class="eyebrow">Code/Clash 2026</p>
+              <h2 id="club-standings-title">Club Challenge Standings</h2>
+              <p class="standings-deck">Represent your organization. Build. Submit. Compete.</p>
+            </div>
+            <div class="assembly-tabs standings-tabs" role="tablist" aria-label="Sort club standings">
+              <button id="registration-standings-tab" type="button" role="tab" aria-selected="true" aria-controls="club-ranking-table" data-standings-sort="registered">Registration standings</button>
+              <button id="submission-standings-tab" type="button" role="tab" aria-selected="false" aria-controls="club-ranking-table" data-standings-sort="submissions" tabindex="-1">Final submissions</button>
+            </div>
+          </header>
+
+          <div class="standings-table" id="club-ranking-table" role="table" aria-label="Club Challenge standings" aria-busy="true">
+            <div class="standings-table-head" role="row">
+              <span role="columnheader">Rank</span>
+              <span role="columnheader">Organization</span>
+              <span id="standings-score-heading" role="columnheader">Registered</span>
+            </div>
+            <div id="club-standings-rows" role="rowgroup">
+              <div class="standings-state" role="row"><span role="cell">Loading the club leaderboard&hellip;</span></div>
+            </div>
+          </div>
+
+          <div class="standings-footer">
+            <p><strong>Strength in numbers. Victory in submissions.</strong></p>
+            <p>Register with your club, then submit a qualifying project to count in the final standings.</p>
           </div>
         </div>
       </section>
@@ -459,7 +493,7 @@
             <label>Role you want to fill * <span>(from your desired roles)</span><select name="joinRole"><option value="">Choose one</option><option>Builder</option><option>Defender</option><option>Analyst</option><option>Designer</option><option>Strategist</option></select></label>
           </div>
           <div class="form-grid">
-            <label>Student organization affiliation<input name="studentOrganization" type="text" maxlength="150" placeholder="None" /></label>
+            <label>Student organization affiliation<select name="studentOrganization" id="student-organization"><option value="">None / not affiliated</option><option value="bit-brothers">Bit Brothers</option><option value="sister-scripters">Sister Scripters</option><option value="itech">iTech</option><option value="software-engineering-club">Software Engineering Club (SEC)</option><option value="robotics-club">Robotics Club</option><option value="game-design-club">Game Design Club</option><option value="cyber-defense-club">Cyber Defense Club</option><option value="nsbe">National Society of Black Engineers (NSBE)</option><option value="ai-club">AI Club</option><option value="nsdc">National Society of Diverse Computing (NSDC)</option></select><span class="field-help">Choose one club so the standings stay accurate.</span></label>
             <label>Phone number <span>(optional/private)</span><input name="phone" type="tel" autocomplete="tel" maxlength="30" /></label>
             <label>Pronouns <span>(optional/private)</span><input name="pronouns" type="text" maxlength="50" /></label>
             <label>Portfolio, GitHub, or LinkedIn URL <span>(optional)</span><input name="portfolioUrl" type="url" inputmode="url" maxlength="500" placeholder="https://" /></label>
@@ -497,6 +531,7 @@
       <nav class="footer-nav" aria-label="Footer navigation">
         <a href="#roles">Roles</a>
         <a href="#schedule">Schedule</a>
+        <a href="#club-standings">Club Standings</a>
         <!-- Team navigation is hidden until organizer profiles are ready. -->
         <a href="#faq">FAQ</a>
         <a href="#sponsors">Sponsors</a>

@@ -157,16 +157,36 @@ Deno.serve(async (request) => {
         .select("from_team_name,from_role,to_team_name,to_role,reviewed_by,created_at")
         .eq("application_id", id).order("created_at", { ascending: false }).limit(20);
       if (changesError) throw changesError;
-      return respond(200, { application: data, joinRequest, membership, membershipChanges }, origin);
+      const { data: clubs, error: clubsError } = await admin.from("clubs")
+        .select("id,name").eq("active", true).order("display_order").order("name");
+      if (clubsError) throw clubsError;
+      return respond(200, { application: data, clubs: clubs || [], joinRequest, membership, membershipChanges }, origin);
     }
 
     if (action === "updateApplication") {
       const id = uuid(body.id);
       const status = allowed(body.status, applicationStatuses);
       const notes = clean(body.notes, 2000) || null;
+      const qualifyingSubmission = body.qualifyingSubmission === true;
+      const organizationChoice = body.studentOrganizationId === undefined ? "unchanged" : clean(body.studentOrganizationId, 40);
       if (!id || !status) return respond(422, { error: "A valid application and status are required." }, origin);
       let createdTeam: Record<string, unknown> | null = null;
       let inviteCode: string | null = null;
+      let organizationUpdate: Record<string, unknown> = {};
+
+      if (organizationChoice !== "unchanged") {
+        if (!organizationChoice) {
+          organizationUpdate = { student_organization_id: null, student_organization: "None" };
+        } else {
+          const organizationId = uuid(organizationChoice);
+          if (!organizationId) return respond(422, { error: "Choose a valid club assignment." }, origin);
+          const { data: club, error: clubError } = await admin.from("clubs")
+            .select("id,name").eq("id", organizationId).eq("active", true).maybeSingle();
+          if (clubError) throw clubError;
+          if (!club) return respond(422, { error: "That club is no longer available." }, origin);
+          organizationUpdate = { student_organization_id: club.id, student_organization: club.name };
+        }
+      }
 
       if (status === "approved") {
         const { data: application, error: applicationError } = await admin.from("applications")
@@ -210,7 +230,8 @@ Deno.serve(async (request) => {
       }
       const { data, error } = await admin.from("applications").update({
         application_status: status, organizer_notes: notes, reviewed_at: new Date().toISOString(),
-        reviewed_by: authData.user.id, updated_at: new Date().toISOString(),
+        reviewed_by: authData.user.id, qualifying_submission: qualifyingSubmission, updated_at: new Date().toISOString(),
+        ...organizationUpdate,
         ...(inviteCode ? { organizer_team_invite_code: inviteCode } : {}),
       }).eq("id", id).select("id,application_status,organizer_notes,reviewed_at,updated_at").single();
       if (error?.code === "PGRST116") return respond(404, { error: "Application not found." }, origin);

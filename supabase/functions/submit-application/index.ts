@@ -76,6 +76,7 @@ Deno.serve(async (request) => {
   const joinRole = clean(body.joinRole, 20);
   const dietaryRestrictionStatus = clean(body.dietaryRestrictionStatus, 20);
   const dietaryRestrictions = optional(body.dietaryRestrictions, 500);
+  const studentOrganizationSlug = optional(body.studentOrganization, 80);
 
   const invalid = fullName.length < 2 || !isEmail(schoolEmail) || school.length < 2 || !major ||
     !Number.isInteger(graduationYear) || graduationYear < 2026 || graduationYear > 2035 ||
@@ -103,6 +104,16 @@ Deno.serve(async (request) => {
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, secretKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  let studentOrganizationId: string | null = null;
+  let studentOrganization = "None";
+  if (studentOrganizationSlug) {
+    const { data: club, error: clubError } = await supabase.from("clubs")
+      .select("id,name").eq("slug", studentOrganizationSlug).eq("active", true).maybeSingle();
+    if (clubError) return json(503, { error: "Applications are temporarily unavailable." }, origin);
+    if (!club) return json(422, { error: "Choose a student organization from the list." }, origin);
+    studentOrganizationId = club.id;
+    studentOrganization = club.name;
+  }
   let sourceHash: string;
   try {
     sourceHash = await hashSource(source);
@@ -118,7 +129,8 @@ Deno.serve(async (request) => {
   const { data: application, error } = await supabase.from("applications").insert({
     full_name: fullName, school_email: schoolEmail, school, major, graduation_year: graduationYear,
     experience_level: experienceLevel, desired_roles: desiredRoles, project_interests: projectInterests,
-    team_status: teamStatus, student_organization: clean(body.studentOrganization, 150) || "None",
+    team_status: teamStatus, student_organization: studentOrganization, student_organization_original: studentOrganization,
+    student_organization_id: studentOrganizationId,
     proposed_team_name: teamStatus === "creating" ? proposedTeamName : null,
     roles_needed: teamStatus === "creating" ? rolesNeeded : [], team_lookup: teamStatus === "joining" ? "Invite validated" : null,
     phone: optional(body.phone, 30), pronouns: optional(body.pronouns, 50),

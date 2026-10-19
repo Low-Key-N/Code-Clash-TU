@@ -170,11 +170,12 @@ const detailLabels = {
   created_at: "Submitted", full_name: "Full name", school_email: "School email", school: "College or university",
   major: "Major / program", graduation_year: "Graduation year", experience_level: "Experience level",
   desired_roles: "Desired roles", project_interests: "Project interests", team_status: "Team status",
-  student_organization: "Student organization", proposed_team_name: "Proposed team", roles_needed: "Roles needed",
+  student_organization_original: "Original organization response", student_organization: "Current club assignment",
+  proposed_team_name: "Proposed team", roles_needed: "Roles needed",
   team_lookup: "Team lookup", phone: "Phone", pronouns: "Pronouns", dietary_restrictions: "Dietary restrictions",
   accessibility_accommodations: "Accessibility accommodations", portfolio_url: "Portfolio URL",
   public_board_consent: "Public board consent", marketing_consent: "Marketing consent", reviewed_at: "Reviewed",
-  organizer_team_invite_code: "Team invite code (private)",
+  organizer_team_invite_code: "Team invite code (private)", qualifying_submission: "Qualifying project submission",
 };
 const wideDetails = new Set(["project_interests", "dietary_restrictions", "accessibility_accommodations"]);
 
@@ -188,7 +189,7 @@ function detailValue(key, value) {
 async function openApplication(id) {
   setStatus(globalStatus, "Opening application…");
   try {
-    const { application, joinRequest, membership, membershipChanges } = await adminRequest("applicationDetail", { id });
+    const { application, clubs, joinRequest, membership, membershipChanges } = await adminRequest("applicationDetail", { id });
     if (membership || (application.team_status === "solo" && !joinRequest)) {
       const fresh = await adminRequest("bootstrap");
       state.teams = fresh.teams;
@@ -204,6 +205,24 @@ async function openApplication(id) {
     });
     reviewForm.elements.id.value = application.id;
     reviewForm.elements.status.value = application.application_status;
+    const organizationSelect = reviewForm.elements.studentOrganizationId;
+    const organizationOptions = [];
+    const hasSelectableCurrentClub = (clubs || []).some((club) => club.id === application.student_organization_id);
+    if (!hasSelectableCurrentClub && application.student_organization && application.student_organization !== "None") {
+      const keepCurrent = element("option", "", `Keep current: ${application.student_organization}`);
+      keepCurrent.value = "unchanged";
+      organizationOptions.push(keepCurrent);
+    }
+    const noAffiliation = element("option", "", "None / not affiliated");
+    noAffiliation.value = "";
+    organizationOptions.push(noAffiliation, ...(clubs || []).map((club) => {
+      const option = element("option", "", club.name);
+      option.value = club.id;
+      return option;
+    }));
+    organizationSelect.replaceChildren(...organizationOptions);
+    organizationSelect.value = hasSelectableCurrentClub ? application.student_organization_id : (organizationOptions[0]?.value === "unchanged" ? "unchanged" : "");
+    reviewForm.elements.qualifyingSubmission.checked = application.qualifying_submission === true;
     reviewForm.elements.notes.value = application.organizer_notes || "";
     renderJoinRequest(joinRequest);
     renderAssignment(application, joinRequest);
@@ -501,7 +520,7 @@ membershipForm.addEventListener("submit", async (event) => {
 reviewForm.addEventListener("submit", async (event) => {
   event.preventDefault(); const button = reviewForm.querySelector('button[type="submit"]'); setBusy(button, true, "Saving…");
   try {
-    const result = await adminRequest("updateApplication", { id: reviewForm.elements.id.value, status: reviewForm.elements.status.value, notes: reviewForm.elements.notes.value });
+    const result = await adminRequest("updateApplication", { id: reviewForm.elements.id.value, status: reviewForm.elements.status.value, studentOrganizationId: reviewForm.elements.studentOrganizationId.value, qualifyingSubmission: reviewForm.elements.qualifyingSubmission.checked, notes: reviewForm.elements.notes.value });
     applicationDialog.close();
     const inviteMessage = result.inviteCode ? ` Invite code: ${result.inviteCode}` : "";
     const successMessage = `${result.message}${inviteMessage}`;

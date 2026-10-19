@@ -97,6 +97,8 @@ dialog::backdrop { background:rgba(21,21,0,.76); }
 .join-review .detail-grid { margin-bottom:18px; }
 .join-actions { display:flex; justify-content:space-between; gap:32px; }
 #review-form,#team-form { display:grid; gap:18px; padding-top:22px; border-top:4px solid var(--ink); }
+.check-label { display:flex; grid-template-columns:auto 1fr; align-items:center; gap:10px; padding:13px; border:3px solid var(--ink); background:rgba(255,187,0,.2); }
+.check-label input { width:auto; margin:0; }
 .form-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
 fieldset { margin:0; padding:16px; border:3px solid var(--ink); }
 legend { padding:0 7px; font-weight:900; text-transform:uppercase; }
