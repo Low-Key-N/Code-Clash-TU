@@ -189,7 +189,7 @@ function detailValue(key, value) {
 async function openApplication(id) {
   setStatus(globalStatus, "Opening application…");
   try {
-    const { application, clubs, joinRequest, membership, membershipChanges } = await adminRequest("applicationDetail", { id });
+    const { application, clubs, clubIds = [], joinRequest, membership, membershipChanges } = await adminRequest("applicationDetail", { id });
     if (membership || (application.team_status === "solo" && !joinRequest)) {
       const fresh = await adminRequest("bootstrap");
       state.teams = fresh.teams;
@@ -205,23 +205,22 @@ async function openApplication(id) {
     });
     reviewForm.elements.id.value = application.id;
     reviewForm.elements.status.value = application.application_status;
-    const organizationSelect = reviewForm.elements.studentOrganizationId;
+    const organizationSelect = reviewForm.elements.studentOrganizationIds;
     const organizationOptions = [];
-    const hasSelectableCurrentClub = (clubs || []).some((club) => club.id === application.student_organization_id);
-    if (!hasSelectableCurrentClub && application.student_organization && application.student_organization !== "None") {
+    const assignedClubIds = new Set(clubIds);
+    if (!assignedClubIds.size && application.student_organization && application.student_organization !== "None") {
       const keepCurrent = element("option", "", `Keep current: ${application.student_organization}`);
       keepCurrent.value = "unchanged";
+      keepCurrent.selected = true;
       organizationOptions.push(keepCurrent);
     }
-    const noAffiliation = element("option", "", "None / not affiliated");
-    noAffiliation.value = "";
-    organizationOptions.push(noAffiliation, ...(clubs || []).map((club) => {
+    organizationOptions.push(...(clubs || []).map((club) => {
       const option = element("option", "", club.name);
       option.value = club.id;
+      option.selected = assignedClubIds.has(club.id);
       return option;
     }));
     organizationSelect.replaceChildren(...organizationOptions);
-    organizationSelect.value = hasSelectableCurrentClub ? application.student_organization_id : (organizationOptions[0]?.value === "unchanged" ? "unchanged" : "");
     reviewForm.elements.qualifyingSubmission.checked = application.qualifying_submission === true;
     reviewForm.elements.notes.value = application.organizer_notes || "";
     renderJoinRequest(joinRequest);
@@ -520,7 +519,8 @@ membershipForm.addEventListener("submit", async (event) => {
 reviewForm.addEventListener("submit", async (event) => {
   event.preventDefault(); const button = reviewForm.querySelector('button[type="submit"]'); setBusy(button, true, "Saving…");
   try {
-    const result = await adminRequest("updateApplication", { id: reviewForm.elements.id.value, status: reviewForm.elements.status.value, studentOrganizationId: reviewForm.elements.studentOrganizationId.value, qualifyingSubmission: reviewForm.elements.qualifyingSubmission.checked, notes: reviewForm.elements.notes.value });
+    const studentOrganizationIds = [...reviewForm.elements.studentOrganizationIds.selectedOptions].map((option) => option.value);
+    const result = await adminRequest("updateApplication", { id: reviewForm.elements.id.value, status: reviewForm.elements.status.value, studentOrganizationIds, qualifyingSubmission: reviewForm.elements.qualifyingSubmission.checked, notes: reviewForm.elements.notes.value });
     applicationDialog.close();
     const inviteMessage = result.inviteCode ? ` Invite code: ${result.inviteCode}` : "";
     const successMessage = `${result.message}${inviteMessage}`;

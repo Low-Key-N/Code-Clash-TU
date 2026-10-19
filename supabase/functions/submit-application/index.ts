@@ -142,6 +142,19 @@ Deno.serve(async (request) => {
   const received = { ok: true, message: "Application received. If you already applied, your original application remains on file. Organizers will review your team placement." };
   if (error?.code === "23505") return json(200, received, origin);
   if (error) return json(503, { error: "We could not save your application. Please try again." }, origin);
+  if (studentOrganizationId) {
+    const { error: membershipError } = await supabase.from("application_club_memberships").insert({
+      application_id: application.id,
+      club_id: studentOrganizationId,
+      source: "registration",
+      assigned_by: "registration",
+    });
+    if (membershipError) {
+      console.error("Club membership assignment failed", membershipError.code, membershipError.message);
+      await supabase.from("applications").delete().eq("id", application.id);
+      return json(503, { error: "We could not save your application. Please try again." }, origin);
+    }
+  }
   if (teamStatus === "joining") {
     const { error: joinError } = await supabase.rpc("reserve_team_join", {
       application_id: application.id, invite_code: teamLookup, requested_role: joinRole,
