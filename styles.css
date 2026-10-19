@@ -999,7 +999,7 @@ h2 { margin-bottom: 20px; font-size: clamp(2.3rem, 5vw, 4.3rem); font-style: ita
 .standings-club { display: flex; gap: 10px; align-items: center; text-align: left !important; font-size: 1.08rem; font-weight: 900; }
 .club-marker { width: 16px; height: 16px; flex: 0 0 auto; border: 2px solid var(--ink); background: var(--tu-gold); box-shadow: 2px 2px 0 var(--ink); transform: rotate(45deg); }
 .standings-count { font-size: 1.25rem; font-weight: 900; }
-.standings-count.is-primary { color: var(--tu-old-gold); font-size: 1.55rem; }
+.standings-count.is-primary { color: var(--ink); font-size: 1.55rem; }
 .standings-state { padding: 28px; font-weight: 900; text-align: center; }
 .standings-footer { display: grid; grid-template-columns: .8fr 1.5fr; gap: 12px 28px; margin-top: 26px; padding-top: 22px; border-top: 3px solid var(--ink); }
 .standings-footer p { margin: 0; }
