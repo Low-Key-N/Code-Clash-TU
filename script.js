@@ -322,10 +322,11 @@ function renderClubStandings() {
 function populateClubSelect(clubs) {
   if (!studentOrganizationSelect) return;
   const selected = studentOrganizationSelect.value;
+  const registrationClubs = new Set(["bit-brothers", "nsbe"]);
   const none = document.createElement("option");
   none.value = "";
   none.textContent = "None / not affiliated";
-  const options = clubs.map((club) => {
+  const options = clubs.filter((club) => registrationClubs.has(club.slug)).map((club) => {
     const option = document.createElement("option");
     option.value = club.slug;
     option.textContent = club.name;

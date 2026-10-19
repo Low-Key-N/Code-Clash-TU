@@ -108,7 +108,7 @@ Deno.serve(async (request) => {
   let studentOrganization = "None";
   if (studentOrganizationSlug) {
     const { data: club, error: clubError } = await supabase.from("clubs")
-      .select("id,name").eq("slug", studentOrganizationSlug).eq("active", true).maybeSingle();
+      .select("id,name").eq("slug", studentOrganizationSlug).eq("active", true).eq("registration_enabled", true).maybeSingle();
     if (clubError) return json(503, { error: "Applications are temporarily unavailable." }, origin);
     if (!club) return json(422, { error: "Choose a student organization from the list." }, origin);
     studentOrganizationId = club.id;

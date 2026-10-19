@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" href="../assets/code-clash-clock-tower.png" />
     <link rel="stylesheet" href="admin.css?v=20261019-1" />
     <script src="../supabase-config.js?v=20261019-1"></script>
-    <script src="admin.js?v=20261019-2" defer></script>
+    <script src="admin.js?v=20261019-3" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#admin-main">Skip to dashboard</a>
@@ -140,7 +140,7 @@
       <form id="review-form">
         <input name="id" type="hidden" />
         <label>Decision<select name="status"><option value="submitted">Submitted</option><option value="approved">Approved</option><option value="waitlisted">Waitlisted</option><option value="rejected">Rejected</option></select></label>
-        <label>Current club assignments<select name="studentOrganizationIds" multiple size="7"></select><span class="field-help">Select every organization this applicant belongs to. Their original response remains visible above until you save a change.</span></label>
+        <label>Current club assignment<select name="studentOrganizationId"></select><span class="field-help">Each applicant can represent one organization. Their original response remains visible above until you save a change.</span></label>
         <label class="check-label"><input name="qualifyingSubmission" type="checkbox" /> Count this member in final Club Challenge standings</label>
         <label>Private organizer notes<textarea name="notes" maxlength="2000" rows="5"></textarea></label>
         <div class="dialog-actions split-actions"><button class="row-button danger-button" id="delete-application" type="button">Delete application</button><button class="comic-button" type="submit">Save review</button></div>

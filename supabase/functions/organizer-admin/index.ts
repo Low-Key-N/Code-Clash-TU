@@ -160,13 +160,13 @@ Deno.serve(async (request) => {
       const { data: clubs, error: clubsError } = await admin.from("clubs")
         .select("id,name").eq("active", true).order("display_order").order("name");
       if (clubsError) throw clubsError;
-      const { data: clubMemberships, error: clubMembershipsError } = await admin.from("application_club_memberships")
-        .select("club_id").eq("application_id", id);
-      if (clubMembershipsError) throw clubMembershipsError;
+      const { data: clubMembership, error: clubMembershipError } = await admin.from("application_club_memberships")
+        .select("club_id").eq("application_id", id).maybeSingle();
+      if (clubMembershipError) throw clubMembershipError;
       return respond(200, {
         application: data,
         clubs: clubs || [],
-        clubIds: (clubMemberships || []).map((item) => item.club_id),
+        clubId: clubMembership?.club_id || null,
         joinRequest,
         membership,
         membershipChanges,
@@ -178,23 +178,21 @@ Deno.serve(async (request) => {
       const status = allowed(body.status, applicationStatuses);
       const notes = clean(body.notes, 2000) || null;
       const qualifyingSubmission = body.qualifyingSubmission === true;
-      const organizationChoices = body.studentOrganizationIds === undefined ? null : strings(body.studentOrganizationIds, 20, 40);
+      const organizationChoice = body.studentOrganizationId === undefined ? "unchanged" : clean(body.studentOrganizationId, 40);
       if (!id || !status) return respond(422, { error: "A valid application and status are required." }, origin);
       let createdTeam: Record<string, unknown> | null = null;
       let inviteCode: string | null = null;
-      let selectedClubIds: string[] | null = null;
+      let selectedClubId: string | null | undefined;
 
-      if (organizationChoices && !organizationChoices.includes("unchanged")) {
-        selectedClubIds = [...new Set(organizationChoices)];
-        if (selectedClubIds.some((clubId) => !uuid(clubId))) {
-          return respond(422, { error: "Choose valid club assignments." }, origin);
-        }
+      if (organizationChoice !== "unchanged") {
+        selectedClubId = organizationChoice ? uuid(organizationChoice) || undefined : null;
+        if (selectedClubId === undefined) return respond(422, { error: "Choose a valid club assignment." }, origin);
       }
 
-      if (selectedClubIds !== null) {
-        const { error: clubAssignmentError } = await admin.rpc("set_application_clubs", {
+      if (selectedClubId !== undefined) {
+        const { error: clubAssignmentError } = await admin.rpc("set_application_club", {
           applicant_id: id,
-          club_ids: selectedClubIds,
+          selected_club_id: selectedClubId,
           reviewer,
         });
         if (clubAssignmentError) return respond(422, { error: clubAssignmentError.message }, origin);
