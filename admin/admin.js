@@ -5,7 +5,7 @@ const authUrl = `${config.url}/auth/v1`;
 const adminUrl = `${config.url}/functions/v1/organizer-admin`;
 const sessionKey = "code-clash-organizer-session";
 const roles = ["Builder", "Defender", "Analyst", "Designer", "Strategist"];
-const state = { session: null, teams: [], applications: [], page: 1, pageSize: 25, count: 0, search: "", status: "" };
+const state = { session: null, teams: [], applications: [], page: 1, pageSize: 10, count: 0, search: "", status: "" };
 
 const loginView = document.querySelector("#login-view");
 const dashboardView = document.querySelector("#dashboard-view");

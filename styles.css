@@ -1056,8 +1056,11 @@ h2 { margin-bottom: 20px; font-size: clamp(2.3rem, 5vw, 4.3rem); font-style: ita
   background: rgba(255,255,255,.9);
   box-shadow: 4px 4px 0 rgba(21,21,0,.22);
 }
-.assembly-views { display: grid; }
+.assembly-views { position: relative; display: grid; }
 .assembly-panel {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
   grid-area: 1 / 1;
   opacity: 0;
   visibility: hidden;
@@ -1066,6 +1069,8 @@ h2 { margin-bottom: 20px; font-size: clamp(2.3rem, 5vw, 4.3rem); font-style: ita
   transition: opacity .28s ease, transform .34s ease, visibility 0s linear .34s;
 }
 .assembly-panel.is-active {
+  position: relative;
+  inset: auto;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
