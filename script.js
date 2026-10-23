@@ -322,7 +322,18 @@ function renderClubStandings() {
 function populateClubSelect(clubs) {
   if (!studentOrganizationSelect) return;
   const selected = studentOrganizationSelect.value;
-  const registrationClubs = new Set(["bit-brothers", "nsbe"]);
+  const registrationClubs = new Set([
+    "bit-brothers",
+    "sister-scripters",
+    "cyber-defense-club",
+    "game-design-club",
+    "itech",
+    "robotics-club",
+    "software-engineering-club",
+    "ai-club",
+    "nsbe",
+    "nsdc",
+  ]);
   const none = document.createElement("option");
   none.value = "";
   none.textContent = "None / not affiliated";
