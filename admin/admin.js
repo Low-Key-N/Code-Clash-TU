@@ -5,7 +5,10 @@ const authUrl = `${config.url}/auth/v1`;
 const adminUrl = `${config.url}/functions/v1/organizer-admin`;
 const sessionKey = "code-clash-organizer-session";
 const roles = ["Builder", "Defender", "Analyst", "Designer", "Strategist"];
-const state = { session: null, teams: [], applications: [], page: 1, pageSize: 10, count: 0, search: "", status: "" };
+const state = {
+  session: null, teams: [], applications: [], page: 1, pageSize: 10, count: 0, search: "", status: "",
+  accommodations: [], accommodationPage: 1, accommodationPageSize: 25, accommodationCount: 0, accommodationSearch: "",
+};
 
 const loginView = document.querySelector("#login-view");
 const dashboardView = document.querySelector("#dashboard-view");
@@ -13,6 +16,7 @@ const loginForm = document.querySelector("#login-form");
 const loginStatus = document.querySelector("#login-status");
 const globalStatus = document.querySelector("#global-status");
 const applicationsBody = document.querySelector("#applications-body");
+const accommodationsBody = document.querySelector("#accommodations-body");
 const applicationDialog = document.querySelector("#application-dialog");
 const teamDialog = document.querySelector("#team-dialog");
 const reviewForm = document.querySelector("#review-form");
@@ -162,6 +166,48 @@ async function loadApplications() {
     state.applications = result.applications;
     state.count = result.count;
     renderApplications();
+    setStatus(globalStatus);
+  } catch (error) { handleRequestError(error); }
+}
+
+function renderAccommodations() {
+  accommodationsBody.replaceChildren();
+  document.querySelector("#accommodations-empty").hidden = state.accommodations.length > 0;
+  state.accommodations.forEach((accommodation) => {
+    const row = document.createElement("tr");
+    const participant = document.createElement("td");
+    participant.append(
+      element("strong", "", accommodation.full_name),
+      element("small", "", accommodation.school_email),
+      element("small", "privacy-note", accommodation.school || "School not provided"),
+    );
+    const request = element("td", "accommodation-request", accommodation.accessibility_accommodations);
+    const submitted = element("td", "", formatDate(accommodation.created_at));
+    const status = document.createElement("td"); status.append(statusPill(accommodation.application_status));
+    const actions = element("td", "accommodation-actions");
+    const pdf = element("button", "row-button", "Export PDF");
+    pdf.type = "button"; pdf.dataset.accommodationPdf = accommodation.id;
+    const review = element("button", "row-button", "View application");
+    review.type = "button"; review.dataset.accommodationApplication = accommodation.id;
+    actions.append(pdf, review);
+    row.append(participant, request, submitted, status, actions);
+    accommodationsBody.append(row);
+  });
+  const pages = Math.max(1, Math.ceil(state.accommodationCount / state.accommodationPageSize));
+  document.querySelector("#accommodations-page-label").textContent = `Page ${state.accommodationPage} of ${pages} · ${state.accommodationCount} request${state.accommodationCount === 1 ? "" : "s"}`;
+  document.querySelector("#accommodations-previous").disabled = state.accommodationPage <= 1;
+  document.querySelector("#accommodations-next").disabled = state.accommodationPage >= pages;
+}
+
+async function loadAccommodations() {
+  setStatus(globalStatus, "Loading accommodation requests…");
+  try {
+    const result = await adminRequest("listAccommodations", {
+      page: state.accommodationPage, pageSize: state.accommodationPageSize, search: state.accommodationSearch,
+    });
+    state.accommodations = result.accommodations;
+    state.accommodationCount = result.count;
+    renderAccommodations();
     setStatus(globalStatus);
   } catch (error) { handleRequestError(error); }
 }
@@ -413,12 +459,111 @@ async function exportCsv(button) {
   finally { setBusy(button, false); }
 }
 
+function pdfSafeText(value) {
+  return String(value || "")
+    .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-").replace(/[^\x20-\x7E\n]/g, "?");
+}
+
+function wrapPdfText(value, width = 82) {
+  const lines = [];
+  pdfSafeText(value).split(/\r?\n/).forEach((paragraph) => {
+    const words = paragraph.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) { lines.push(""); return; }
+    let line = "";
+    words.forEach((word) => {
+      while (word.length > width) {
+        if (line) { lines.push(line); line = ""; }
+        lines.push(word.slice(0, width)); word = word.slice(width);
+      }
+      if (!line) line = word;
+      else if (`${line} ${word}`.length <= width) line += ` ${word}`;
+      else { lines.push(line); line = word; }
+    });
+    if (line) lines.push(line);
+  });
+  return lines;
+}
+
+function pdfEscape(value) {
+  return value.replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");
+}
+
+function makeAccommodationPdf(accommodation) {
+  const submitted = accommodation.created_at ? new Date(accommodation.created_at).toLocaleString() : "Not available";
+  const documentLines = [
+    "CODE / CLASH - ACCOMMODATION REQUEST",
+    "CONFIDENTIAL - ORGANIZER USE ONLY",
+    "",
+    `Participant: ${accommodation.full_name}`,
+    `Email: ${accommodation.school_email}`,
+    `School: ${accommodation.school || "Not provided"}`,
+    `Application status: ${accommodation.application_status}`,
+    `Submitted: ${submitted}`,
+    "",
+    "REQUESTED ACCOMMODATIONS",
+    ...wrapPdfText(accommodation.accessibility_accommodations),
+    "",
+    `Exported: ${new Date().toLocaleString()}`,
+    "Handle and share this document only as needed to coordinate participant access.",
+  ].map(pdfSafeText);
+  const pageChunks = [];
+  for (let index = 0; index < documentLines.length; index += 46) pageChunks.push(documentLines.slice(index, index + 46));
+  const objects = [];
+  const pageReferences = pageChunks.map((_, index) => `${4 + index * 2} 0 R`).join(" ");
+  objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+  objects[2] = `<< /Type /Pages /Kids [${pageReferences}] /Count ${pageChunks.length} >>`;
+  objects[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+  pageChunks.forEach((lines, index) => {
+    const pageId = 4 + index * 2;
+    const contentId = pageId + 1;
+    const commands = ["BT", "/F1 11 Tf", "14 TL"];
+    lines.forEach((line, lineIndex) => {
+      const y = 738 - lineIndex * 14;
+      const size = index === 0 && lineIndex === 0 ? 16 : (index === 0 && lineIndex === 1 ? 9 : 11);
+      commands.push(`/F1 ${size} Tf`, `1 0 0 1 54 ${y} Tm`, `(${pdfEscape(line)}) Tj`);
+    });
+    commands.push("ET");
+    const stream = commands.join("\n");
+    objects[pageId] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentId} 0 R >>`;
+    objects[contentId] = `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`;
+  });
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  for (let id = 1; id < objects.length; id += 1) {
+    offsets[id] = pdf.length;
+    pdf += `${id} 0 obj\n${objects[id]}\nendobj\n`;
+  }
+  const xrefOffset = pdf.length;
+  pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+  for (let id = 1; id < objects.length; id += 1) pdf += `${String(offsets[id]).padStart(10, "0")} 00000 n \n`;
+  pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+  return new Blob([pdf], { type: "application/pdf" });
+}
+
+function exportAccommodationPdf(accommodation, button) {
+  setBusy(button, true, "Preparing…");
+  try {
+    const url = URL.createObjectURL(makeAccommodationPdf(accommodation));
+    const filename = pdfSafeText(accommodation.full_name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "participant";
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `code-clash-accommodation-${filename}.pdf`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setStatus(globalStatus, `Accommodation PDF exported for ${accommodation.full_name}.`);
+  } catch (error) { handleRequestError(error); }
+  finally { setBusy(button, false); }
+}
+
 function switchView(view) {
   document.querySelectorAll("[data-panel]").forEach((panel) => { const active = panel.dataset.panel === view; panel.hidden = !active; panel.classList.toggle("is-active", active); });
   document.querySelectorAll("[data-view]").forEach((button) => button.classList.toggle("is-active", button.dataset.view === view));
-  const titles = { overview: ["Command center", "Overview"], applications: ["Participant files", "Applications"], teams: ["Assembly control", "Teams"] };
+  const titles = { overview: ["Command center", "Overview"], applications: ["Participant files", "Applications"], accommodations: ["Access planning", "Accommodations"], teams: ["Assembly control", "Teams"] };
   document.querySelector("#view-eyebrow").textContent = titles[view][0]; document.querySelector("#view-title").textContent = titles[view][1];
   if (view === "applications") loadApplications();
+  if (view === "accommodations") loadAccommodations();
   history.replaceState(null, "", `#${view}`);
 }
 
@@ -430,7 +575,7 @@ async function bootstrap() {
     document.querySelector("#organizer-email").textContent = result.organizer.email;
     renderOverview(result.counts); renderTeams();
     showDashboard();
-    switchView(["overview", "applications", "teams"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview");
+    switchView(["overview", "applications", "accommodations", "teams"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview");
     setStatus(loginStatus);
   } catch (error) {
     storeSession(null);
@@ -466,6 +611,32 @@ document.querySelector("#application-filter").addEventListener("change", (event)
 document.querySelector("#previous-page").addEventListener("click", () => { if (state.page > 1) { state.page -= 1; loadApplications(); } });
 document.querySelector("#next-page").addEventListener("click", () => { if (state.page * state.pageSize < state.count) { state.page += 1; loadApplications(); } });
 applicationsBody.addEventListener("click", (event) => { const button = event.target.closest("[data-application-id]"); if (button) openApplication(button.dataset.applicationId); });
+
+let accommodationSearchTimer;
+document.querySelector("#accommodation-search").addEventListener("input", (event) => {
+  clearTimeout(accommodationSearchTimer);
+  accommodationSearchTimer = setTimeout(() => {
+    state.accommodationSearch = event.target.value.trim();
+    state.accommodationPage = 1;
+    loadAccommodations();
+  }, 300);
+});
+document.querySelector("#accommodations-previous").addEventListener("click", () => {
+  if (state.accommodationPage > 1) { state.accommodationPage -= 1; loadAccommodations(); }
+});
+document.querySelector("#accommodations-next").addEventListener("click", () => {
+  if (state.accommodationPage * state.accommodationPageSize < state.accommodationCount) { state.accommodationPage += 1; loadAccommodations(); }
+});
+accommodationsBody.addEventListener("click", (event) => {
+  const pdfButton = event.target.closest("[data-accommodation-pdf]");
+  if (pdfButton) {
+    const accommodation = state.accommodations.find((item) => item.id === pdfButton.dataset.accommodationPdf);
+    if (accommodation) exportAccommodationPdf(accommodation, pdfButton);
+    return;
+  }
+  const applicationButton = event.target.closest("[data-accommodation-application]");
+  if (applicationButton) openApplication(applicationButton.dataset.accommodationApplication);
+});
 
 assignmentForm.addEventListener("submit", async (event) => {
   event.preventDefault();

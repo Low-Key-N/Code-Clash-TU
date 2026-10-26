@@ -120,6 +120,22 @@ Deno.serve(async (request) => {
       return respond(200, { applications: data || [], count: count || 0, page, pageSize }, origin);
     }
 
+    if (action === "listAccommodations") {
+      const page = Math.max(1, Math.min(1000, Number(body.page) || 1));
+      const pageSize = Math.max(10, Math.min(100, Number(body.pageSize) || 25));
+      const search = clean(body.search, 100).replace(/[^a-z0-9@._ +\-]/gi, "");
+      let query = admin.from("applications")
+        .select("id,created_at,full_name,school_email,school,application_status,accessibility_accommodations", { count: "exact" })
+        .not("accessibility_accommodations", "is", null)
+        .neq("accessibility_accommodations", "")
+        .order("full_name")
+        .range((page - 1) * pageSize, page * pageSize - 1);
+      if (search) query = query.or(`full_name.ilike.%${search}%,school_email.ilike.%${search}%`);
+      const { data, error, count } = await query;
+      if (error) throw error;
+      return respond(200, { accommodations: data || [], count: count || 0, page, pageSize }, origin);
+    }
+
     if (action === "applicationDetail") {
       const id = uuid(body.id);
       if (!id) return respond(422, { error: "A valid application ID is required." }, origin);
