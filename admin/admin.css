@@ -67,7 +67,7 @@ th { background:var(--ink); color:var(--paper); font-size:.68rem; letter-spacing
 td { font-size:.86rem; }
 td strong,td small { display:block; }
 td small { margin-top:3px; color:var(--graphite); }
-.accommodation-request { min-width:260px; max-width:560px; white-space:pre-wrap; line-height:1.5; }
+.accommodation-request { min-width:220px; max-width:420px; white-space:pre-wrap; line-height:1.5; }
 .accommodation-actions { display:flex; flex-wrap:wrap; gap:8px; min-width:180px; }
 .privacy-note { color:var(--graphite); font-size:.75rem; }
 .status-pill { display:inline-block; padding:4px 7px; border:2px solid var(--ink); background:var(--mist); font-size:.65rem; font-weight:900; text-transform:uppercase; }

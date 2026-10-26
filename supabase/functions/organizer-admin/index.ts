@@ -125,15 +125,18 @@ Deno.serve(async (request) => {
       const pageSize = Math.max(10, Math.min(100, Number(body.pageSize) || 25));
       const search = clean(body.search, 100).replace(/[^a-z0-9@._ +\-]/gi, "");
       let query = admin.from("applications")
-        .select("id,created_at,full_name,school_email,school,application_status,accessibility_accommodations", { count: "exact" })
-        .not("accessibility_accommodations", "is", null)
-        .neq("accessibility_accommodations", "")
+        .select("id,created_at,full_name,school_email,school,application_status,accessibility_accommodations,dietary_restrictions")
         .order("full_name")
-        .range((page - 1) * pageSize, page * pageSize - 1);
+        .limit(5000);
       if (search) query = query.or(`full_name.ilike.%${search}%,school_email.ilike.%${search}%`);
-      const { data, error, count } = await query;
+      const { data, error } = await query;
       if (error) throw error;
-      return respond(200, { accommodations: data || [], count: count || 0, page, pageSize }, origin);
+      const emptyAnswers = new Set(["", "none", "n/a", "na", "no"]);
+      const hasRequest = (value: unknown) => typeof value === "string" && !emptyAnswers.has(value.trim().toLowerCase());
+      const accommodations = (data || []).filter((application) =>
+        hasRequest(application.accessibility_accommodations) || hasRequest(application.dietary_restrictions));
+      const start = (page - 1) * pageSize;
+      return respond(200, { accommodations: accommodations.slice(start, start + pageSize), count: accommodations.length, page, pageSize }, origin);
     }
 
     if (action === "applicationDetail") {

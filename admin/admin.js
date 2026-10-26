@@ -181,22 +181,30 @@ function renderAccommodations() {
       element("small", "", accommodation.school_email),
       element("small", "privacy-note", accommodation.school || "School not provided"),
     );
-    const request = element("td", "accommodation-request", accommodation.accessibility_accommodations);
+    const accessibility = element("td", "accommodation-request", displayRequest(accommodation.accessibility_accommodations));
+    const dietary = element("td", "accommodation-request", displayRequest(accommodation.dietary_restrictions));
     const submitted = element("td", "", formatDate(accommodation.created_at));
     const status = document.createElement("td"); status.append(statusPill(accommodation.application_status));
-    const actions = element("td", "accommodation-actions");
+    const actions = document.createElement("td");
+    const actionGroup = element("div", "accommodation-actions");
     const pdf = element("button", "row-button", "Export PDF");
     pdf.type = "button"; pdf.dataset.accommodationPdf = accommodation.id;
     const review = element("button", "row-button", "View application");
     review.type = "button"; review.dataset.accommodationApplication = accommodation.id;
-    actions.append(pdf, review);
-    row.append(participant, request, submitted, status, actions);
+    actionGroup.append(pdf, review);
+    actions.append(actionGroup);
+    row.append(participant, accessibility, dietary, submitted, status, actions);
     accommodationsBody.append(row);
   });
   const pages = Math.max(1, Math.ceil(state.accommodationCount / state.accommodationPageSize));
   document.querySelector("#accommodations-page-label").textContent = `Page ${state.accommodationPage} of ${pages} · ${state.accommodationCount} request${state.accommodationCount === 1 ? "" : "s"}`;
   document.querySelector("#accommodations-previous").disabled = state.accommodationPage <= 1;
   document.querySelector("#accommodations-next").disabled = state.accommodationPage >= pages;
+}
+
+function displayRequest(value) {
+  const text = typeof value === "string" ? value.trim() : "";
+  return text && !["none", "n/a", "na", "no"].includes(text.toLowerCase()) ? text : "—";
 }
 
 async function loadAccommodations() {
@@ -493,7 +501,7 @@ function pdfEscape(value) {
 function makeAccommodationPdf(accommodation) {
   const submitted = accommodation.created_at ? new Date(accommodation.created_at).toLocaleString() : "Not available";
   const documentLines = [
-    "CODE / CLASH - ACCOMMODATION REQUEST",
+    "CODE / CLASH - PARTICIPANT SUPPORT REQUEST",
     "CONFIDENTIAL - ORGANIZER USE ONLY",
     "",
     `Participant: ${accommodation.full_name}`,
@@ -502,8 +510,11 @@ function makeAccommodationPdf(accommodation) {
     `Application status: ${accommodation.application_status}`,
     `Submitted: ${submitted}`,
     "",
-    "REQUESTED ACCOMMODATIONS",
-    ...wrapPdfText(accommodation.accessibility_accommodations),
+    "ACCESSIBILITY ACCOMMODATIONS",
+    ...wrapPdfText(displayRequest(accommodation.accessibility_accommodations)),
+    "",
+    "DIETARY RESTRICTIONS",
+    ...wrapPdfText(displayRequest(accommodation.dietary_restrictions)),
     "",
     `Exported: ${new Date().toLocaleString()}`,
     "Handle and share this document only as needed to coordinate participant access.",

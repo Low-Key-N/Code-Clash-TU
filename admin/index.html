@@ -8,9 +8,9 @@
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <title>Organizer HQ | Code/Clash</title>
     <link rel="icon" type="image/png" href="../assets/code-clash-clock-tower.png" />
-    <link rel="stylesheet" href="admin.css?v=20261026-1" />
+    <link rel="stylesheet" href="admin.css?v=20261026-2" />
     <script src="../supabase-config.js?v=20261019-1"></script>
-    <script src="admin.js?v=20261026-1" defer></script>
+    <script src="admin.js?v=20261026-2" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#admin-main">Skip to dashboard</a>
@@ -97,17 +97,17 @@
           <section class="dashboard-panel" id="accommodations-panel" data-panel="accommodations" hidden>
             <div class="section-intro">
               <div>
-                <p class="eyebrow">Accessibility requests</p>
-                <h2>Participant accommodations</h2>
+                <p class="eyebrow">Event support requests</p>
+                <h2>Participant accommodations &amp; dietary needs</h2>
               </div>
-              <p>Sensitive information for event planning. Only applicants who submitted an accommodation request appear here.</p>
+              <p>Sensitive information for event planning. Only applicants who submitted an accessibility accommodation or dietary restriction appear here.</p>
             </div>
             <div class="toolbar">
               <label class="search-field">Find a participant<input id="accommodation-search" type="search" placeholder="Name or email" autocomplete="off" /></label>
             </div>
             <div class="table-shell accommodations-table-shell">
               <table>
-                <thead><tr><th>Participant</th><th>Request</th><th>Submitted</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+                <thead><tr><th>Participant</th><th>Accessibility accommodations</th><th>Dietary restrictions</th><th>Submitted</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
                 <tbody id="accommodations-body"></tbody>
               </table>
               <div class="empty-state" id="accommodations-empty" hidden><strong>No accommodation requests found.</strong><span>Try another name or email address.</span></div>
