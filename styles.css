@@ -1459,6 +1459,22 @@ h2 { margin-bottom: 20px; font-size: clamp(2.3rem, 5vw, 4.3rem); font-style: ita
   transform: rotate(-1deg);
 }
 .community-partner-card img { width: 112px; aspect-ratio: 1; object-fit: cover; border: 3px solid var(--ink); border-radius: 50%; }
+.community-partner-logo-frame {
+  width: 112px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: #17275f;
+}
+.community-partner-card .community-partner-logo-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  transform: scale(1.04);
+}
 .community-partner-card h3 { margin: 0 0 4px; font-size: 1.35rem; text-transform: uppercase; }
 .community-partner-card p { margin: 0; color: var(--tu-graphite); font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .community-partner-link {
@@ -1824,6 +1840,8 @@ footer p { margin: 0; }
   .sponsor-featured-copy p { padding: 16px 0 0; border-top: 3px solid var(--ink); border-left: 0; }
   .community-partner-card { grid-template-columns: 78px 1fr; gap: 14px; padding: 13px; }
   .community-partner-card img { width: 78px; }
+  .community-partner-logo-frame { width: 78px; }
+  .community-partner-card .community-partner-logo-frame img { width: 100%; }
   .community-partner-card h3 { font-size: 1.05rem; }
 }
 
