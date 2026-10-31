@@ -1307,7 +1307,7 @@ h2 { margin-bottom: 20px; font-size: clamp(2.3rem, 5vw, 4.3rem); font-style: ita
 .schedule-arrow:disabled { opacity: 1; cursor: default; }
 .schedule-timeline-scroll { overflow-x: auto; padding: 8px 42px 20px; scroll-snap-type: x proximity; scrollbar-color: var(--tu-gold) var(--tu-glen-mist); scrollbar-width: thin; }
 .schedule-timeline-scroll:focus-visible { outline: 3px solid var(--tu-gold); outline-offset: 4px; }
-.event-schedule { position: relative; display: grid; grid-template-columns: repeat(18, 240px); grid-template-rows: 172px 36px 172px; column-gap: 28px; width: max-content; min-width: 100%; margin: 0; padding: 0 20px; list-style: none; }
+.event-schedule { position: relative; display: grid; grid-template-columns: repeat(19, 240px); grid-template-rows: 172px 36px 172px; column-gap: 28px; width: max-content; min-width: 100%; margin: 0; padding: 0 20px; list-style: none; }
 .event-schedule::before { content: ""; position: absolute; top: 50%; right: 0; left: 0; height: 4px; background: var(--ink); transform: translateY(-50%); }
 .event-schedule li { position: relative; z-index: 1; min-height: 146px; align-self: start; padding: 50px 16px 15px; overflow: visible; border: 3px solid var(--ink); border-radius: 2px; background: var(--tu-glen-mist); box-shadow: 4px 4px 0 var(--tu-old-gold); scroll-snap-align: start; }
 .event-schedule li:nth-child(even) { grid-row: 1; align-self: end; }
@@ -1330,6 +1330,7 @@ h2 { margin-bottom: 20px; font-size: clamp(2.3rem, 5vw, 4.3rem); font-style: ita
 .event-schedule li:nth-child(16) { grid-column: 16; }
 .event-schedule li:nth-child(17) { grid-column: 17; }
 .event-schedule li:nth-child(18) { grid-column: 18; }
+.event-schedule li:nth-child(19) { grid-column: 19; }
 .event-schedule li::before { content: ""; position: absolute; left: 50%; width: 3px; height: 20px; background: var(--ink); transform: translateX(-50%); }
 .event-schedule li::after { content: ""; position: absolute; left: 50%; width: 13px; height: 13px; border: 3px solid var(--ink); border-radius: 50%; background: var(--tu-gold); transform: translateX(-50%); }
 .event-schedule li:nth-child(even)::before { bottom: -22px; }
