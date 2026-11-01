@@ -88,18 +88,47 @@ Deno.serve(async (request) => {
         if (status) query = query.eq("application_status", status);
         return query;
       };
-      const [total, submitted, approved, waitlisted, rejected, teams, reservations] = await Promise.all([
+      const [total, submitted, approved, waitlisted, rejected, teams, reservations, invites, memberships] = await Promise.all([
         countFor(), countFor("submitted"), countFor("approved"), countFor("waitlisted"), countFor("rejected"),
         admin.from("public_teams").select("id,team_name,member_first_names,member_roles,roles_needed,approved_project_interests,capacity,occupied_slots,publication_status,reviewed_by,published_at,display_order,updated_at").order("updated_at", { ascending: false }),
         admin.from("team_join_requests").select("public_team_id").eq("status", "pending").gt("expires_at", new Date().toISOString()),
+        admin.from("team_invites").select("public_team_id,owner_application_id").is("revoked_at", null),
+        admin.from("team_join_requests").select("public_team_id,application_id,desired_role").eq("status", "approved"),
       ]);
       const countError = [total, submitted, approved, waitlisted, rejected].find((result) => result.error)?.error;
-      if (countError || teams.error || reservations.error) throw countError || teams.error || reservations.error;
+      if (countError || teams.error || reservations.error || invites.error || memberships.error) {
+        throw countError || teams.error || reservations.error || invites.error || memberships.error;
+      }
+      const applicationIds = [...new Set([
+        ...(invites.data || []).map((invite) => invite.owner_application_id),
+        ...(memberships.data || []).map((membership) => membership.application_id),
+      ])];
+      const applications = applicationIds.length
+        ? await admin.from("applications").select("id,full_name,desired_roles").in("id", applicationIds)
+        : { data: [], error: null };
+      if (applications.error) throw applications.error;
+      const applicationsById = new Map((applications.data || []).map((application) => [application.id, application]));
+      const registeredMembers = new Map<string, Array<Record<string, unknown>>>();
+      const addMember = (teamId: string, applicationId: string, role: string, isCreator: boolean) => {
+        const application = applicationsById.get(applicationId);
+        if (!application) return;
+        const teamMembers = registeredMembers.get(teamId) || [];
+        if (teamMembers.some((member) => member.id === applicationId)) return;
+        teamMembers.push({ id: application.id, full_name: application.full_name, role, is_creator: isCreator });
+        registeredMembers.set(teamId, teamMembers);
+      };
+      (invites.data || []).forEach((invite) => {
+        const application = applicationsById.get(invite.owner_application_id);
+        addMember(invite.public_team_id, invite.owner_application_id, application?.desired_roles?.[0] || "Unassigned", true);
+      });
+      (memberships.data || []).forEach((membership) =>
+        addMember(membership.public_team_id, membership.application_id, membership.desired_role, false));
       return respond(200, {
         organizer: { id: authData.user.id, email: authData.user.email || "Organizer", displayName: organizer.display_name || "Organizer" },
         counts: { total: total.count || 0, submitted: submitted.count || 0, approved: approved.count || 0, waitlisted: waitlisted.count || 0, rejected: rejected.count || 0 },
         teams: (teams.data || []).map((team) => ({ ...team,
           available_slots: Math.max(0, team.capacity - team.occupied_slots - (reservations.data || []).filter((item) => item.public_team_id === team.id).length),
+          registered_members: registeredMembers.get(team.id) || [],
         })),
       }, origin);
     }

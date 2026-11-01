@@ -368,14 +368,23 @@ function teamCard(team) {
   const header = document.createElement("header");
   header.append(element("h2", "", team.team_name), statusPill(team.publication_status));
   const details = document.createElement("dl");
-  const publicRoster = (team.member_first_names || []).map((name, index) => `${name} · ${team.member_roles[index]}`).join(", ") || "None";
-  [["Members", `${team.occupied_slots}/${team.capacity}`], ["Public roster", publicRoster], ["Seeking", (team.roles_needed || []).join(", ") || "None"], ["Updated", formatDate(team.updated_at)]].forEach(([term, value]) => details.append(element("dt", "", term), element("dd", "", value)));
+  [["Members", `${team.occupied_slots}/${team.capacity}`], ["Seeking", (team.roles_needed || []).join(", ") || "None"], ["Updated", formatDate(team.updated_at)]].forEach(([term, value]) => details.append(element("dt", "", term), element("dd", "", value)));
+  const memberSummary = element("section", "team-member-summary");
+  memberSummary.append(element("h3", "", "Registered team"));
+  const memberList = element("ul", "team-member-list");
+  (team.registered_members || []).forEach((member) => {
+    const item = element("li");
+    item.append(element("strong", "", member.full_name), element("span", "", `${member.role}${member.is_creator ? " · Creator" : ""}`));
+    memberList.append(item);
+  });
+  if (!memberList.children.length) memberList.append(element("li", "team-member-empty", "No registered members"));
+  memberSummary.append(memberList);
   const actions = element("div", "card-actions");
   const edit = element("button", "row-button", "Edit"); edit.type = "button"; edit.dataset.teamAction = "edit"; edit.dataset.teamId = team.id; actions.append(edit);
   const publicationAction = team.publication_status === "published" ? "archive" : "publish";
   const publication = element("button", "row-button", publicationAction); publication.type = "button"; publication.dataset.teamAction = publicationAction; publication.dataset.teamId = team.id; actions.append(publication);
   const remove = element("button", "row-button danger-button", "Delete"); remove.type = "button"; remove.dataset.teamAction = "delete"; remove.dataset.teamId = team.id; actions.append(remove);
-  card.append(header, details, actions);
+  card.append(header, details, memberSummary, actions);
   return card;
 }
 

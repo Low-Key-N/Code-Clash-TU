@@ -86,6 +86,13 @@ td small { margin-top:3px; color:var(--graphite); }
 .team-card dl { display:grid; grid-template-columns:auto 1fr; gap:7px 12px; font-size:.82rem; }
 .team-card dt { font-weight:900; text-transform:uppercase; }
 .team-card dd { margin:0; }
+.team-member-summary { margin-top:17px; padding-top:14px; border-top:3px solid var(--ink); }
+.team-member-summary h3 { margin:0 0 9px; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; }
+.team-member-list { display:grid; gap:6px; margin:0; padding:0; list-style:none; }
+.team-member-list li { display:flex; align-items:baseline; justify-content:space-between; gap:14px; padding:7px 9px; background:var(--mist); font-size:.8rem; }
+.team-member-list strong { overflow-wrap:anywhere; }
+.team-member-list span { flex:none; color:var(--graphite); font-size:.72rem; }
+.team-member-list .team-member-empty { display:block; color:var(--graphite); font-style:italic; }
 .card-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
 .danger-button { color:#8d1010; }
 dialog { width:min(850px,calc(100% - 28px)); max-height:90vh; overflow:auto; padding:clamp(22px,4vw,38px); border:5px solid var(--ink); border-radius:0; box-shadow:12px 12px 0 var(--gold); }
