@@ -43,9 +43,10 @@ access to application and team tables remains revoked. Publication requires an
 organizer review and the applicant's public-board consent.
 
 Team invite codes are stored only as SHA-256 hashes. A valid code represents
-team-owner authorization to request membership, reserves capacity for seven
-days, and still requires organizer approval. Join requests and invite records
-have RLS enabled with no direct `anon` or `authenticated` privileges.
+team-owner authorization to join an active team. Registration confirms the
+membership and occupies a team slot atomically, without a second organizer
+approval. Membership and invite records have RLS enabled with no direct `anon`
+or `authenticated` privileges.
 
 For organizer retrieval, the current plaintext invite code is also attached to
 the private `applications` row after approval. It is available only through the

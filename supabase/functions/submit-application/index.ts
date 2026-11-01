@@ -139,7 +139,7 @@ Deno.serve(async (request) => {
     public_board_consent: body.publicBoardConsent === true, marketing_consent: body.marketingConsent === true,
     agreed_to_rules_at: now, confirmed_accurate_at: now,
   }).select("id").single();
-  const received = { ok: true, message: "Application received. If you already applied, your original application remains on file. Organizers will review your team placement." };
+  const received = { ok: true, message: "Application received. If you already applied, your original application remains on file. Organizers will review your application." };
   if (error?.code === "23505") return json(200, received, origin);
   if (error) return json(503, { error: "We could not save your application. Please try again." }, origin);
   if (studentOrganizationId) {
