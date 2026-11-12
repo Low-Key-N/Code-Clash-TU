@@ -364,7 +364,7 @@ Deno.serve(async (request) => {
       const id = uuid(body.id);
       if (!id) return respond(422, { error: "A valid team ID is required." }, origin);
       const [team, invite, memberships] = await Promise.all([
-        admin.from("public_teams").select("id").eq("id", id).maybeSingle(),
+        admin.from("public_teams").select("id,organizer_invite_code").eq("id", id).maybeSingle(),
         admin.from("team_invites").select("owner_application_id").eq("public_team_id", id).is("revoked_at", null).maybeSingle(),
         admin.from("team_join_requests").select("application_id,desired_role").eq("public_team_id", id).eq("status", "approved"),
       ]);
@@ -373,12 +373,12 @@ Deno.serve(async (request) => {
       const ownerId = invite.data?.owner_application_id || null;
       const roleByApplication = new Map((memberships.data || []).map((membership) => [membership.application_id, membership.desired_role]));
       const applicationIds = [...new Set([...(ownerId ? [ownerId] : []), ...roleByApplication.keys()])];
-      if (!applicationIds.length) return respond(200, { members: [] }, origin);
+      if (!applicationIds.length) return respond(200, { members: [], inviteCode: team.data.organizer_invite_code }, origin);
       const { data, error } = await admin.from("applications")
         .select("id,full_name,school_email,desired_roles,public_board_consent")
         .in("id", applicationIds).order("full_name");
       if (error) throw error;
-      return respond(200, { members: (data || []).map((application) => ({
+      return respond(200, { inviteCode: team.data.organizer_invite_code, members: (data || []).map((application) => ({
         id: application.id, full_name: application.full_name, school_email: application.school_email,
         public_board_consent: application.public_board_consent, is_creator: application.id === ownerId,
         role: roleByApplication.get(application.id) || application.desired_roles?.[0] || "Unassigned",
@@ -409,7 +409,13 @@ Deno.serve(async (request) => {
       const query = id ? admin.from("public_teams").update(payload).eq("id", id) : admin.from("public_teams").insert(payload);
       const { data, error } = await query.select("*").single();
       if (error) throw error;
-      return respond(id ? 200 : 201, { team: data, message: id ? "Team updated." : "Team created." }, origin);
+      if (id) return respond(200, { team: data, message: "Team updated." }, origin);
+      const inviteResult = await admin.rpc("create_organizer_team_invite", { team_id: data.id });
+      if (inviteResult.error) {
+        await admin.from("public_teams").delete().eq("id", data.id);
+        throw inviteResult.error;
+      }
+      return respond(201, { team: { ...data, organizer_invite_code: inviteResult.data }, inviteCode: inviteResult.data, message: "Team created with an invite code." }, origin);
     }
 
     if (action === "publishTeam" || action === "archiveTeam") {

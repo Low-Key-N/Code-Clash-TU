@@ -415,6 +415,15 @@ async function openTeam(team = null) {
   const editor = document.querySelector("#member-editor"); editor.replaceChildren();
   (team?.member_first_names || []).forEach((name, index) => editor.append(memberRow(name, team.member_roles[index])));
   document.querySelectorAll('#roles-needed input[type="checkbox"]').forEach((box) => { box.checked = Boolean(team?.roles_needed?.includes(box.value)); });
+  const inviteFieldset = document.querySelector("#team-invite-fieldset");
+  const inviteInput = teamForm.elements.inviteCode;
+  const inviteHelp = document.querySelector("#team-invite-help");
+  const copyInvite = document.querySelector("#copy-team-invite");
+  inviteFieldset.hidden = !team;
+  inviteInput.value = team ? "Loading…" : "";
+  inviteHelp.textContent = "Share this private code with approved participants who should join this team.";
+  copyInvite.textContent = "Copy code";
+  copyInvite.disabled = true;
   const registeredFieldset = document.querySelector("#registered-members-fieldset");
   const registeredList = document.querySelector("#registered-member-list");
   registeredFieldset.hidden = !team;
@@ -423,8 +432,13 @@ async function openTeam(team = null) {
   teamDialog.showModal();
   if (!team) return;
   try {
-    const { members } = await adminRequest("teamMembers", { id: team.id });
+    const { members, inviteCode } = await adminRequest("teamMembers", { id: team.id });
     if (teamForm.elements.id.value !== team.id) return;
+    inviteInput.value = inviteCode || "Unavailable";
+    inviteHelp.textContent = inviteCode
+      ? "Share this private code with approved participants who should join this team."
+      : "This team does not have an active invite code.";
+    copyInvite.disabled = !inviteCode;
     registeredList.replaceChildren(...members.map((member) => {
       const row = element("div", "registered-member");
       const identity = document.createElement("div");
@@ -436,6 +450,9 @@ async function openTeam(team = null) {
     }));
     if (!members.length) registeredList.append(element("p", "field-help", "No registered applications are assigned to this team yet."));
   } catch (error) {
+    inviteInput.value = "Unavailable";
+    inviteHelp.textContent = "The invite code could not be loaded.";
+    copyInvite.disabled = true;
     registeredList.replaceChildren(element("p", "form-status is-error", error.message));
   }
 }
@@ -756,6 +773,20 @@ document.querySelector("#reject-join-request").addEventListener("click", (event)
 
 document.querySelector("#export-csv").addEventListener("click", (event) => exportCsv(event.currentTarget));
 document.querySelector("#new-team").addEventListener("click", () => openTeam());
+document.querySelector("#copy-team-invite").addEventListener("click", async (event) => {
+  const input = teamForm.elements.inviteCode;
+  if (!input.value || input.value === "Unavailable" || input.value === "Loading…") return;
+  const button = event.currentTarget;
+  try {
+    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(input.value);
+    else { input.select(); document.execCommand("copy"); }
+    button.textContent = "Copied";
+    setTimeout(() => { button.textContent = "Copy code"; }, 1600);
+  } catch {
+    input.focus(); input.select();
+    setStatus(globalStatus, "Copy failed. The invite code is selected so you can copy it manually.", true);
+  }
+});
 document.querySelector("#add-member").addEventListener("click", () => document.querySelector("#member-editor").append(memberRow()));
 document.querySelector("#member-editor").addEventListener("click", (event) => { if (event.target.matches("[data-remove-member]")) event.target.closest(".member-row").remove(); });
 document.querySelector("#registered-member-list").addEventListener("click", (event) => {
