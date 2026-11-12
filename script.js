@@ -579,6 +579,6 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
 
 if (applicationForm && !window.SUPABASE_CONFIG?.registrationOpen) {
   applicationForm.hidden = true;
-  document.querySelector("#registration-title").textContent = "Registration is closed.";
-  document.querySelector("#registration-copy").textContent = "Applications for CLASH #001 are now closed. Organizers are reviewing submitted applications.";
+  document.querySelector("#registration-title").textContent = "Thanks for applying!";
+  document.querySelector("#registration-copy").textContent = "Registration for CLASH #001 is closed. Thank you to everyone who applied—organizers are reviewing submissions now.";
 }
