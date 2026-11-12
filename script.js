@@ -138,6 +138,11 @@ const schedulePrevious = document.querySelector("#schedule-previous");
 const scheduleNext = document.querySelector("#schedule-next");
 
 if (scheduleScroller && schedulePrevious && scheduleNext) {
+  const scheduleTrack = scheduleScroller.querySelector(".event-schedule");
+  const scheduleItems = [...scheduleTrack.children];
+  scheduleTrack.style.setProperty("--schedule-item-count", String(scheduleItems.length));
+  scheduleItems.forEach((item, index) => { item.style.gridColumn = String(index + 1); });
+
   function updateScheduleControls() {
     const maximumScroll = scheduleScroller.scrollWidth - scheduleScroller.clientWidth;
     schedulePrevious.disabled = scheduleScroller.scrollLeft <= 2;
