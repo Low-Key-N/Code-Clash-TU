@@ -102,7 +102,7 @@ Deno.serve(async (request) => {
       const applicationIds = [...new Set([
         ...(invites.data || []).map((invite) => invite.owner_application_id),
         ...(memberships.data || []).map((membership) => membership.application_id),
-      ])];
+      ].filter((applicationId): applicationId is string => typeof applicationId === "string"))];
       const applications = applicationIds.length
         ? await admin.from("applications").select("id,full_name,desired_roles").in("id", applicationIds)
         : { data: [], error: null };
@@ -118,6 +118,7 @@ Deno.serve(async (request) => {
         registeredMembers.set(teamId, teamMembers);
       };
       (invites.data || []).forEach((invite) => {
+        if (typeof invite.owner_application_id !== "string") return;
         const application = applicationsById.get(invite.owner_application_id);
         addMember(invite.public_team_id, invite.owner_application_id, application?.desired_roles?.[0] || "Unassigned", true);
       });
