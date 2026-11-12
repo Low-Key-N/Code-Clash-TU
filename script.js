@@ -576,3 +576,9 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
     }
   });
 }
+
+if (applicationForm && !window.SUPABASE_CONFIG?.registrationOpen) {
+  applicationForm.hidden = true;
+  document.querySelector("#registration-title").textContent = "Registration is closed.";
+  document.querySelector("#registration-copy").textContent = "Applications for CLASH #001 are now closed. Organizers are reviewing submitted applications.";
+}

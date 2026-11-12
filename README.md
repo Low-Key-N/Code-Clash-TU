@@ -29,7 +29,7 @@ Open [localhost:8000](http://localhost:8000/).
 
 ## Status
 
-Registration is open. Event dates, venue, and programming remain subject to approval and change.
+Registration is closed. Event dates, venue, and programming remain subject to approval and change.
 
 ## Credits
 
