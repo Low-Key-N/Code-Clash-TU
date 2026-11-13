@@ -275,7 +275,7 @@ let clubStandingsSort = "registered";
 function renderClubStandings() {
   if (!clubStandingsRows) return;
   const scoreKey = clubStandingsSort === "submissions" ? "submissions" : "registered";
-  if (clubStandingsScoreHeading) clubStandingsScoreHeading.textContent = scoreKey === "registered" ? "Registered" : "Final submissions";
+  if (clubStandingsScoreHeading) clubStandingsScoreHeading.textContent = scoreKey === "registered" ? "Registered" : "Club reps";
   const sortedClubs = clubStandings.filter((club) => Number(club[scoreKey]) > 0).sort((a, b) =>
     Number(b[scoreKey]) - Number(a[scoreKey]) || Number(b.registered) - Number(a.registered) || a.name.localeCompare(b.name),
   );
@@ -285,7 +285,7 @@ function renderClubStandings() {
     state.setAttribute("role", "row");
     const message = document.createElement("span");
     message.setAttribute("role", "cell");
-    message.textContent = scoreKey === "registered" ? "No organizations have registered members yet." : "No qualifying submissions yet.";
+    message.textContent = scoreKey === "registered" ? "No organizations have registered members yet." : "No qualified team submissions yet.";
     state.append(message);
     clubStandingsRows.replaceChildren(state);
     return;
@@ -316,7 +316,7 @@ function renderClubStandings() {
     const total = document.createElement("span");
     total.className = "standings-count is-primary";
     total.setAttribute("role", "cell");
-    total.setAttribute("aria-label", `${score} ${scoreKey === "registered" ? "registered members" : "final submissions"}`);
+    total.setAttribute("aria-label", `${score} ${scoreKey === "registered" ? "registered members" : "club representatives on qualified submissions"}`);
     total.textContent = String(score);
     row.append(rank, name, total);
     return row;

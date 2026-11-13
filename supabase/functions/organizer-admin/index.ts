@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const roles = ["Builder", "Defender", "Analyst", "Designer", "Strategist"] as const;
 const applicationStatuses = ["submitted", "approved", "waitlisted", "rejected"] as const;
 const teamStatuses = ["draft", "published", "archived"] as const;
+const clubChallengeStatuses = ["pending", "qualified", "disqualified"] as const;
 const allowedOrigins = (Deno.env.get("ALLOWED_ORIGINS") || "https://codeclashtu.com,http://localhost:8000")
   .split(",").map((value) => value.trim()).filter(Boolean);
 
@@ -90,7 +91,7 @@ Deno.serve(async (request) => {
       };
       const [total, submitted, approved, waitlisted, rejected, teams, reservations, invites, memberships] = await Promise.all([
         countFor(), countFor("submitted"), countFor("approved"), countFor("waitlisted"), countFor("rejected"),
-        admin.from("public_teams").select("id,team_name,member_first_names,member_roles,roles_needed,approved_project_interests,capacity,occupied_slots,publication_status,reviewed_by,published_at,display_order,updated_at").order("updated_at", { ascending: false }),
+        admin.from("public_teams").select("id,team_name,member_first_names,member_roles,roles_needed,approved_project_interests,capacity,occupied_slots,publication_status,reviewed_by,published_at,display_order,updated_at,club_challenge_status,club_challenge_disqualification_reason,club_challenge_reviewed_by,club_challenge_reviewed_at").order("updated_at", { ascending: false }),
         admin.from("team_join_requests").select("public_team_id").eq("status", "pending").gt("expires_at", new Date().toISOString()),
         admin.from("team_invites").select("public_team_id,owner_application_id").is("revoked_at", null),
         admin.from("team_join_requests").select("public_team_id,application_id,desired_role").eq("status", "approved"),
@@ -104,7 +105,7 @@ Deno.serve(async (request) => {
         ...(memberships.data || []).map((membership) => membership.application_id),
       ].filter((applicationId): applicationId is string => typeof applicationId === "string"))];
       const applications = applicationIds.length
-        ? await admin.from("applications").select("id,full_name,desired_roles").in("id", applicationIds)
+        ? await admin.from("applications").select("id,full_name,desired_roles,student_organization").in("id", applicationIds)
         : { data: [], error: null };
       if (applications.error) throw applications.error;
       const applicationsById = new Map((applications.data || []).map((application) => [application.id, application]));
@@ -114,7 +115,7 @@ Deno.serve(async (request) => {
         if (!application) return;
         const teamMembers = registeredMembers.get(teamId) || [];
         if (teamMembers.some((member) => member.id === applicationId)) return;
-        teamMembers.push({ id: application.id, full_name: application.full_name, role, is_creator: isCreator });
+        teamMembers.push({ id: application.id, full_name: application.full_name, role, is_creator: isCreator, club: application.student_organization || "None" });
         registeredMembers.set(teamId, teamMembers);
       };
       (invites.data || []).forEach((invite) => {
@@ -226,7 +227,6 @@ Deno.serve(async (request) => {
       const id = uuid(body.id);
       const status = allowed(body.status, applicationStatuses);
       const notes = clean(body.notes, 2000) || null;
-      const qualifyingSubmission = body.qualifyingSubmission === true;
       const organizationChoice = body.studentOrganizationId === undefined ? "unchanged" : clean(body.studentOrganizationId, 40);
       if (!id || !status) return respond(422, { error: "A valid application and status are required." }, origin);
       let createdTeam: Record<string, unknown> | null = null;
@@ -289,7 +289,7 @@ Deno.serve(async (request) => {
       }
       const { data, error } = await admin.from("applications").update({
         application_status: status, organizer_notes: notes, reviewed_at: new Date().toISOString(),
-        reviewed_by: authData.user.id, qualifying_submission: qualifyingSubmission, updated_at: new Date().toISOString(),
+        reviewed_by: authData.user.id, updated_at: new Date().toISOString(),
         ...(inviteCode ? { organizer_team_invite_code: inviteCode } : {}),
       }).eq("id", id).select("id,application_status,organizer_notes,reviewed_at,updated_at").single();
       if (error?.code === "PGRST116") return respond(404, { error: "Application not found." }, origin);
@@ -357,7 +357,7 @@ Deno.serve(async (request) => {
     if (action === "exportApplications") {
       const { data, error } = await admin.from("applications").select("*").order("created_at", { ascending: false }).limit(5000);
       if (error) throw error;
-      const exportRows = (data || []).map(({ organizer_team_invite_code: _privateInviteCode, ...application }) => application);
+      const exportRows = (data || []).map(({ organizer_team_invite_code: _privateInviteCode, qualifying_submission: _legacyQualifyingFlag, ...application }) => application);
       return respond(200, { applications: exportRows }, origin);
     }
 
@@ -376,12 +376,13 @@ Deno.serve(async (request) => {
       const applicationIds = [...new Set([...(ownerId ? [ownerId] : []), ...roleByApplication.keys()])];
       if (!applicationIds.length) return respond(200, { members: [], inviteCode: team.data.organizer_invite_code }, origin);
       const { data, error } = await admin.from("applications")
-        .select("id,full_name,school_email,desired_roles,public_board_consent")
+        .select("id,full_name,school_email,desired_roles,public_board_consent,student_organization")
         .in("id", applicationIds).order("full_name");
       if (error) throw error;
       return respond(200, { inviteCode: team.data.organizer_invite_code, members: (data || []).map((application) => ({
         id: application.id, full_name: application.full_name, school_email: application.school_email,
         public_board_consent: application.public_board_consent, is_creator: application.id === ownerId,
+        club: application.student_organization || "None",
         role: roleByApplication.get(application.id) || application.desired_roles?.[0] || "Unassigned",
       })) }, origin);
     }
@@ -397,15 +398,25 @@ Deno.serve(async (request) => {
       const occupiedSlots = Number(body.occupiedSlots);
       const displayOrder = Number(body.displayOrder) || 0;
       const interests = clean(body.projectInterests, 300);
+      const challengeStatusProvided = body.clubChallengeStatus !== undefined;
+      const clubChallengeStatus = challengeStatusProvided ? allowed(body.clubChallengeStatus, clubChallengeStatuses) : null;
+      const disqualificationReason = clubChallengeStatus === "disqualified" ? clean(body.clubChallengeDisqualificationReason, 500) : null;
       if (!teamName || memberFirstNames.length !== memberRoles.length || !memberRoles.every((role) => roles.includes(role as typeof roles[number])) ||
           !rolesNeeded.every((role) => roles.includes(role as typeof roles[number])) || !Number.isInteger(capacity) || capacity < 2 || capacity > 8 ||
-          !Number.isInteger(occupiedSlots) || occupiedSlots < memberFirstNames.length || occupiedSlots > capacity || !Number.isInteger(displayOrder)) {
-        return respond(422, { error: "Check the team name, members, roles, capacity, and occupied slots." }, origin);
+          !Number.isInteger(occupiedSlots) || occupiedSlots < memberFirstNames.length || occupiedSlots > capacity || !Number.isInteger(displayOrder) ||
+          (challengeStatusProvided && !clubChallengeStatus) || (clubChallengeStatus === "disqualified" && !disqualificationReason)) {
+        return respond(422, { error: "Check the team name, members, roles, capacity, occupied slots, and Club Challenge eligibility details." }, origin);
       }
       const payload = {
         team_name: teamName, member_first_names: memberFirstNames, member_roles: memberRoles,
         roles_needed: rolesNeeded, approved_project_interests: interests, capacity,
         occupied_slots: occupiedSlots, display_order: displayOrder, updated_at: new Date().toISOString(),
+        ...(clubChallengeStatus ? {
+          club_challenge_status: clubChallengeStatus,
+          club_challenge_disqualification_reason: disqualificationReason,
+          club_challenge_reviewed_by: clubChallengeStatus === "pending" ? null : reviewer,
+          club_challenge_reviewed_at: clubChallengeStatus === "pending" ? null : new Date().toISOString(),
+        } : {}),
       };
       const query = id ? admin.from("public_teams").update(payload).eq("id", id) : admin.from("public_teams").insert(payload);
       const { data, error } = await query.select("*").single();

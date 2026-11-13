@@ -6,7 +6,7 @@ const allowedOrigins = (Deno.env.get("ALLOWED_ORIGINS") || "https://codeclashtu.
 function response(status: number, body: object, origin: string | null) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "Cache-Control": "public, max-age=60, s-maxage=300",
+    "Cache-Control": "public, max-age=15, s-maxage=30",
     "Vary": "Origin",
   };
   if (origin && allowedOrigins.includes(origin)) headers["Access-Control-Allow-Origin"] = origin;

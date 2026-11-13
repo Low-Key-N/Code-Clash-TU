@@ -71,21 +71,31 @@ td small { margin-top:3px; color:var(--graphite); }
 .accommodation-actions { display:flex; flex-wrap:wrap; gap:8px; min-width:180px; }
 .privacy-note { color:var(--graphite); font-size:.75rem; }
 .status-pill { display:inline-block; padding:4px 7px; border:2px solid var(--ink); background:var(--mist); font-size:.65rem; font-weight:900; text-transform:uppercase; }
-.status-approved,.status-published { background:#bce8ba; }
-.status-waitlisted { background:#ffe69a; }
-.status-rejected,.status-archived { background:#f0b4b4; }
+.status-approved,.status-published,.status-qualified { background:#bce8ba; }
+.status-waitlisted,.status-pending { background:#ffe69a; }
+.status-rejected,.status-archived,.status-disqualified { background:#f0b4b4; }
 .row-button,.secondary-button { padding:7px 10px; border:2px solid var(--ink); background:var(--paper); box-shadow:2px 2px 0 var(--ink); font-size:.72rem; font-weight:900; text-transform:uppercase; }
 .pagination { display:flex; justify-content:flex-end; align-items:center; gap:16px; margin-top:22px; }
 .pagination button { padding:8px; border:0; border-bottom:2px solid; background:none; font-weight:800; }
 .empty-state { padding:45px; text-align:center; }
 .empty-state strong,.empty-state span { display:block; }
+.team-groups { display:grid; gap:34px; }
+.team-group { padding:22px; border:4px solid var(--ink); background:rgba(255,255,255,.46); }
+.team-group-qualified { background:rgba(188,232,186,.38); }
+.team-group-disqualified { background:rgba(240,180,180,.32); }
+.team-group-heading { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:18px; padding-bottom:14px; border-bottom:3px solid var(--ink); }
+.team-group-heading h2 { font-size:clamp(1.6rem,3vw,2.4rem); }
+.team-group-count { display:grid; min-width:44px; min-height:44px; place-items:center; border:3px solid var(--ink); border-radius:50%; background:var(--paper); font-weight:900; }
+.team-group .empty-state { padding:24px; }
 .team-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
 .team-card { padding:22px; border:4px solid var(--ink); background:var(--paper); box-shadow:6px 6px 0 var(--ink); }
 .team-card header { display:flex; justify-content:space-between; gap:15px; }
+.team-statuses { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
 .team-card h2 { font-size:1.7rem; }
 .team-card dl { display:grid; grid-template-columns:auto 1fr; gap:7px 12px; font-size:.82rem; }
 .team-card dt { font-weight:900; text-transform:uppercase; }
 .team-card dd { margin:0; }
+.team-card .disqualification-reason { color:#8d1010; font-weight:800; }
 .team-member-summary { margin-top:17px; padding-top:14px; border-top:3px solid var(--ink); }
 .team-member-summary h3 { margin:0 0 9px; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; }
 .team-member-list { display:grid; gap:6px; margin:0; padding:0; list-style:none; }
@@ -130,6 +140,6 @@ legend { padding:0 7px; font-weight:900; text-transform:uppercase; }
 .dialog-actions { display:flex; justify-content:flex-end; }
 .dialog-actions.split-actions { justify-content:space-between; gap:32px; }
 @media (max-width:1000px) { .metric-grid { grid-template-columns:repeat(3,1fr); } .team-list { grid-template-columns:1fr; } }
-@media (max-width:760px) { .login-shell { grid-template-columns:1fr; background:var(--gold); } .login-brand img { width:260px; } .dashboard { display:block; } .sidebar { position:relative; width:100%; height:auto; border-right:0; border-bottom:5px solid var(--ink); } .sidebar nav { grid-template-columns:repeat(2,1fr); } .account-card { margin-top:22px; } .workspace-header,.section-intro { align-items:start; flex-direction:column; } .global-status { text-align:left; } .overview-grid { grid-template-columns:1fr; } .toolbar { align-items:stretch; flex-direction:column; } .toolbar label,.toolbar button { width:100%; } }
+@media (max-width:760px) { .login-shell { grid-template-columns:1fr; background:var(--gold); } .login-brand img { width:260px; } .dashboard { display:block; } .sidebar { position:relative; width:100%; height:auto; border-right:0; border-bottom:5px solid var(--ink); } .sidebar nav { grid-template-columns:repeat(2,1fr); } .account-card { margin-top:22px; } .workspace-header,.section-intro,.team-group-heading { align-items:start; flex-direction:column; } .global-status { text-align:left; } .overview-grid { grid-template-columns:1fr; } .toolbar { align-items:stretch; flex-direction:column; } .toolbar label,.toolbar button { width:100%; } }
 @media (max-width:520px) { .workspace { padding:24px 14px 45px; } .metric-grid { grid-template-columns:1fr 1fr; } .sidebar nav { grid-template-columns:1fr; } .detail-grid,.form-grid,.invite-code-row { grid-template-columns:1fr; } .member-row { grid-template-columns:1fr; } .member-row button,.invite-code-row button { width:100%; } .dialog-actions.split-actions,.join-actions { align-items:stretch; flex-direction:column-reverse; gap:18px; } .dialog-actions.split-actions button,.join-actions button { width:100%; } }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; } }

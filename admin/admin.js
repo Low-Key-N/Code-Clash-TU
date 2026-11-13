@@ -229,7 +229,7 @@ const detailLabels = {
   team_lookup: "Team lookup", phone: "Phone", pronouns: "Pronouns", dietary_restrictions: "Dietary restrictions",
   accessibility_accommodations: "Accessibility accommodations", portfolio_url: "Portfolio URL",
   public_board_consent: "Public board consent", marketing_consent: "Marketing consent", reviewed_at: "Reviewed",
-  organizer_team_invite_code: "Team invite code (private)", qualifying_submission: "Qualifying project submission",
+  organizer_team_invite_code: "Team invite code (private)",
 };
 const wideDetails = new Set(["project_interests", "dietary_restrictions", "accessibility_accommodations"]);
 
@@ -276,7 +276,6 @@ async function openApplication(id) {
     }));
     organizationSelect.replaceChildren(...organizationOptions);
     organizationSelect.value = hasSelectableCurrentClub ? clubId : (organizationOptions[0]?.value === "unchanged" ? "unchanged" : "");
-    reviewForm.elements.qualifyingSubmission.checked = application.qualifying_submission === true;
     reviewForm.elements.notes.value = application.organizer_notes || "";
     renderJoinRequest(joinRequest);
     renderAssignment(application, joinRequest);
@@ -366,21 +365,30 @@ function renderJoinRequest(joinRequest) {
 function teamCard(team) {
   const card = element("article", "team-card");
   const header = document.createElement("header");
-  header.append(element("h2", "", team.team_name), statusPill(team.publication_status));
+  const statuses = element("div", "team-statuses");
+  const challengeStatus = team.club_challenge_status || "pending";
+  const challengeLabels = { pending: "Awaiting review", qualified: "Qualified", disqualified: "Disqualified" };
+  statuses.append(statusPill(team.publication_status), element("span", `status-pill status-${challengeStatus}`, challengeLabels[challengeStatus]));
+  header.append(element("h2", "", team.team_name), statuses);
   const details = document.createElement("dl");
-  [["Members", `${team.occupied_slots}/${team.capacity}`], ["Seeking", (team.roles_needed || []).join(", ") || "None"], ["Updated", formatDate(team.updated_at)]].forEach(([term, value]) => details.append(element("dt", "", term), element("dd", "", value)));
+  const detailRows = [["Members", `${team.occupied_slots}/${team.capacity}`], ["Seeking", (team.roles_needed || []).join(", ") || "None"], ["Updated", formatDate(team.updated_at)]];
+  if (challengeStatus === "disqualified") detailRows.push(["Reason", team.club_challenge_disqualification_reason || "No reason recorded"]);
+  detailRows.forEach(([term, value]) => {
+    const description = element("dd", term === "Reason" ? "disqualification-reason" : "", value);
+    details.append(element("dt", "", term), description);
+  });
   const memberSummary = element("section", "team-member-summary");
   memberSummary.append(element("h3", "", "Registered team"));
   const memberList = element("ul", "team-member-list");
   (team.registered_members || []).forEach((member) => {
     const item = element("li");
-    item.append(element("strong", "", member.full_name), element("span", "", `${member.role}${member.is_creator ? " · Creator" : ""}`));
+    item.append(element("strong", "", member.full_name), element("span", "", `${member.role} · ${member.club || "No club"}${member.is_creator ? " · Creator" : ""}`));
     memberList.append(item);
   });
   if (!memberList.children.length) memberList.append(element("li", "team-member-empty", "No registered members"));
   memberSummary.append(memberList);
   const actions = element("div", "card-actions");
-  const edit = element("button", "row-button", "Edit"); edit.type = "button"; edit.dataset.teamAction = "edit"; edit.dataset.teamId = team.id; actions.append(edit);
+  const edit = element("button", "row-button", "Manage"); edit.type = "button"; edit.dataset.teamAction = "edit"; edit.dataset.teamId = team.id; actions.append(edit);
   const publicationAction = team.publication_status === "published" ? "archive" : "publish";
   const publication = element("button", "row-button", publicationAction); publication.type = "button"; publication.dataset.teamAction = publicationAction; publication.dataset.teamId = team.id; actions.append(publication);
   const remove = element("button", "row-button danger-button", "Delete"); remove.type = "button"; remove.dataset.teamAction = "delete"; remove.dataset.teamId = team.id; actions.append(remove);
@@ -389,9 +397,17 @@ function teamCard(team) {
 }
 
 function renderTeams() {
-  const list = document.querySelector("#team-list");
-  list.replaceChildren(...state.teams.map(teamCard));
-  document.querySelector("#teams-empty").hidden = state.teams.length > 0;
+  const groups = [
+    ["pending", "pending-team-list", "pending-teams-empty", "pending-team-count"],
+    ["qualified", "qualified-team-list", "qualified-teams-empty", "qualified-team-count"],
+    ["disqualified", "disqualified-team-list", "disqualified-teams-empty", "disqualified-team-count"],
+  ];
+  groups.forEach(([status, listId, emptyId, countId]) => {
+    const teams = state.teams.filter((team) => (team.club_challenge_status || "pending") === status);
+    document.querySelector(`#${listId}`).replaceChildren(...teams.map(teamCard));
+    document.querySelector(`#${emptyId}`).hidden = teams.length > 0;
+    document.querySelector(`#${countId}`).textContent = String(teams.length);
+  });
 }
 
 function memberRow(name = "", role = "Builder") {
@@ -411,6 +427,10 @@ async function openTeam(team = null) {
   teamForm.elements.capacity.value = team?.capacity || 4;
   teamForm.elements.occupiedSlots.value = team?.occupied_slots || 0;
   teamForm.elements.displayOrder.value = team?.display_order || 0;
+  teamForm.elements.clubChallengeStatus.value = team?.club_challenge_status || "pending";
+  teamForm.elements.clubChallengeDisqualificationReason.value = team?.club_challenge_disqualification_reason || "";
+  teamForm.dataset.originalClubChallengeStatus = team?.club_challenge_status || "pending";
+  updateClubChallengeReason();
   document.querySelector("#team-dialog-title").textContent = team ? "Edit team" : "Create team";
   const editor = document.querySelector("#member-editor"); editor.replaceChildren();
   (team?.member_first_names || []).forEach((name, index) => editor.append(memberRow(name, team.member_roles[index])));
@@ -442,7 +462,7 @@ async function openTeam(team = null) {
     registeredList.replaceChildren(...members.map((member) => {
       const row = element("div", "registered-member");
       const identity = document.createElement("div");
-      identity.append(element("strong", "", member.full_name), element("small", "", `${member.role} · ${member.school_email}${member.is_creator ? " · Team creator" : ""}${member.public_board_consent ? " · Public display approved" : " · Keep private"}`));
+      identity.append(element("strong", "", member.full_name), element("small", "", `${member.role} · ${member.club || "No club"} · ${member.school_email}${member.is_creator ? " · Team creator" : ""}${member.public_board_consent ? " · Public display approved" : " · Keep private"}`));
       const manage = element("button", "row-button", "Manage");
       manage.type = "button"; manage.dataset.manageApplication = member.id;
       row.append(identity, manage);
@@ -467,10 +487,20 @@ function teamPayload() {
     teamName: teamForm.elements.teamName.value,
     projectInterests: teamForm.elements.projectInterests.value,
     capacity: Number(teamForm.elements.capacity.value), occupiedSlots: Number(teamForm.elements.occupiedSlots.value), displayOrder: Number(teamForm.elements.displayOrder.value),
+    clubChallengeStatus: teamForm.elements.clubChallengeStatus.value,
+    clubChallengeDisqualificationReason: teamForm.elements.clubChallengeDisqualificationReason.value,
     memberFirstNames: members.map((member) => member.name),
     memberRoles: members.map((member) => member.role),
     rolesNeeded: [...document.querySelectorAll('#roles-needed input[type="checkbox"]:checked')].map((box) => box.value),
   };
+}
+
+function updateClubChallengeReason() {
+  const disqualified = teamForm.elements.clubChallengeStatus.value === "disqualified";
+  const container = teamForm.querySelector("[data-disqualification-reason]");
+  container.hidden = !disqualified;
+  teamForm.elements.clubChallengeDisqualificationReason.required = disqualified;
+  if (!disqualified) teamForm.elements.clubChallengeDisqualificationReason.value = "";
 }
 
 function pdfSafeText(value) {
@@ -573,7 +603,7 @@ function applicationPdfLabel(key) {
     student_organization_original: "Original organization answer", application_status: "Application status",
     organizer_notes: "Organizer notes", reviewed_at: "Reviewed", public_board_consent: "Public board consent",
     marketing_consent: "Marketing consent", accessibility_accommodations: "Accessibility accommodations",
-    dietary_restrictions: "Dietary restrictions", qualifying_submission: "Qualifying submission",
+    dietary_restrictions: "Dietary restrictions",
   };
   return labels[key] || key.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
@@ -773,7 +803,7 @@ membershipForm.addEventListener("submit", async (event) => {
 reviewForm.addEventListener("submit", async (event) => {
   event.preventDefault(); const button = reviewForm.querySelector('button[type="submit"]'); setBusy(button, true, "Saving…");
   try {
-    const result = await adminRequest("updateApplication", { id: reviewForm.elements.id.value, status: reviewForm.elements.status.value, studentOrganizationId: reviewForm.elements.studentOrganizationId.value, qualifyingSubmission: reviewForm.elements.qualifyingSubmission.checked, notes: reviewForm.elements.notes.value });
+    const result = await adminRequest("updateApplication", { id: reviewForm.elements.id.value, status: reviewForm.elements.status.value, studentOrganizationId: reviewForm.elements.studentOrganizationId.value, notes: reviewForm.elements.notes.value });
     applicationDialog.close();
     const inviteMessage = result.inviteCode ? ` Invite code: ${result.inviteCode}` : "";
     const successMessage = `${result.message}${inviteMessage}`;
@@ -841,7 +871,7 @@ document.querySelector("#registered-member-list").addEventListener("click", (eve
   openApplication(button.dataset.manageApplication);
 });
 
-document.querySelector("#team-list").addEventListener("click", async (event) => {
+document.querySelector("#team-groups").addEventListener("click", async (event) => {
   const button = event.target.closest("[data-team-action]"); if (!button) return;
   const team = state.teams.find((item) => item.id === button.dataset.teamId); if (!team) return;
   if (button.dataset.teamAction === "edit") { openTeam(team); return; }
@@ -857,9 +887,22 @@ document.querySelector("#team-list").addEventListener("click", async (event) => 
   finally { setBusy(button, false); }
 });
 
+teamForm.elements.clubChallengeStatus.addEventListener("change", updateClubChallengeReason);
+
 teamForm.addEventListener("submit", async (event) => {
-  event.preventDefault(); const button = teamForm.querySelector('button[type="submit"]'); setBusy(button, true, "Saving…");
-  try { const result = await adminRequest("saveTeam", teamPayload()); teamDialog.close(); setStatus(globalStatus, result.message); const fresh = await adminRequest("bootstrap"); state.teams = fresh.teams; renderOverview(fresh.counts); renderTeams(); }
+  event.preventDefault();
+  const payload = teamPayload();
+  const originalStatus = teamForm.dataset.originalClubChallengeStatus || "pending";
+  if (payload.id && payload.clubChallengeStatus !== originalStatus) {
+    const warning = payload.clubChallengeStatus === "qualified"
+      ? "Qualify this team? Every registered member will count toward their club in the public Final Submissions leaderboard."
+      : payload.clubChallengeStatus === "disqualified"
+        ? "Disqualify this team? It will be excluded from the public Final Submissions leaderboard."
+        : "Return this team to awaiting final review? It will not count in the public Final Submissions leaderboard.";
+    if (!confirm(warning)) return;
+  }
+  const button = teamForm.querySelector('button[type="submit"]'); setBusy(button, true, "Saving…");
+  try { const result = await adminRequest("saveTeam", payload); teamDialog.close(); setStatus(globalStatus, result.message); const fresh = await adminRequest("bootstrap"); state.teams = fresh.teams; renderOverview(fresh.counts); renderTeams(); }
   catch (error) { handleRequestError(error); }
   finally { setBusy(button, false); }
 });
