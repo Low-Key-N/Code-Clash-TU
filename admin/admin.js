@@ -141,6 +141,7 @@ function renderApplications() {
   document.querySelector("#applications-empty").hidden = state.applications.length > 0;
   state.applications.forEach((application) => {
     const row = document.createElement("tr");
+    const participant = element("td", "participant-number", `Participant ${application.application_number}`);
     const applicant = document.createElement("td");
     applicant.append(element("strong", "", application.full_name), element("small", "", application.school_email));
     const school = document.createElement("td");
@@ -150,7 +151,7 @@ function renderApplications() {
     const status = document.createElement("td"); status.append(statusPill(application.application_status));
     const action = document.createElement("td");
     const view = element("button", "row-button", "Review"); view.type = "button"; view.dataset.applicationId = application.id; action.append(view);
-    row.append(applicant, school, roleCell, date, status, action);
+    row.append(participant, applicant, school, roleCell, date, status, action);
     applicationsBody.append(row);
   });
   const pages = Math.max(1, Math.ceil(state.count / state.pageSize));
@@ -593,48 +594,19 @@ function makeAccommodationPdf(accommodation) {
   ]);
 }
 
-function applicationPdfLabel(key) {
-  const labels = {
-    id: "Application ID", created_at: "Submitted", updated_at: "Last updated",
-    full_name: "Full name", school_email: "School email", graduation_year: "Graduation year",
-    experience_level: "Experience level", desired_roles: "Desired roles", project_interests: "Project interests",
-    team_status: "Team status", proposed_team_name: "Proposed team name", roles_needed: "Roles needed",
-    team_lookup: "Team lookup", join_role: "Join role", student_organization: "Student organization",
-    student_organization_original: "Original organization answer", application_status: "Application status",
-    organizer_notes: "Organizer notes", reviewed_at: "Reviewed", public_board_consent: "Public board consent",
-    marketing_consent: "Marketing consent", accessibility_accommodations: "Accessibility accommodations",
-    dietary_restrictions: "Dietary restrictions",
-  };
-  return labels[key] || key.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function applicationPdfValue(key, value) {
-  if (value === null || value === undefined || value === "") return "Not provided";
-  if (typeof value === "boolean") return value ? "Yes" : "No";
-  if (Array.isArray(value)) return value.length ? value.join(", ") : "None";
-  if (key.endsWith("_at")) {
-    const date = new Date(value);
-    if (!Number.isNaN(date.valueOf())) return date.toLocaleString();
-  }
-  if (typeof value === "object") return JSON.stringify(value);
-  return String(value);
-}
-
 function makeApplicationsPdf(applications) {
   const lines = [
-    "CODE / CLASH - APPLICATION EXPORT",
+    "CODE / CLASH - APPLICANT LIST",
     "CONFIDENTIAL - ORGANIZER USE ONLY",
     "",
-    `Applications: ${applications.length}`,
-    `Exported: ${new Date().toLocaleString()}`,
+    "APPLICATION # | NAME | EMAIL | TEAM",
   ];
-  applications.forEach((application, index) => {
-    lines.push("", `APPLICATION ${index + 1} OF ${applications.length}`, "");
-    Object.entries(application).forEach(([key, value]) => {
-      lines.push(...wrapPdfText(`${applicationPdfLabel(key)}: ${applicationPdfValue(key, value)}`, 78));
-    });
+  applications.forEach((application) => {
+    lines.push(...wrapPdfText(
+      `${application.applicationNumber} | ${application.name} | ${application.email} | ${application.team}`,
+      78,
+    ));
   });
-  lines.push("", "Handle and share this document only as needed for event administration.");
   return makeTextPdf(lines);
 }
 

@@ -148,7 +148,15 @@ Deno.serve(async (request) => {
       if (search) query = query.or(`full_name.ilike.%${search}%,school_email.ilike.%${search}%`);
       const { data, error, count } = await query;
       if (error) throw error;
-      return respond(200, { applications: data || [], count: count || 0, page, pageSize }, origin);
+      const { data: applicationOrder, error: applicationOrderError } = await admin.from("applications")
+        .select("id").order("created_at", { ascending: true }).order("id", { ascending: true }).limit(5000);
+      if (applicationOrderError) throw applicationOrderError;
+      const applicationNumbers = new Map((applicationOrder || []).map((application, index) => [application.id, index + 1]));
+      const numberedApplications = (data || []).map((application) => ({
+        ...application,
+        application_number: applicationNumbers.get(application.id),
+      }));
+      return respond(200, { applications: numberedApplications, count: count || 0, page, pageSize }, origin);
     }
 
     if (action === "listAccommodations") {
@@ -355,9 +363,33 @@ Deno.serve(async (request) => {
     }
 
     if (action === "exportApplications") {
-      const { data, error } = await admin.from("applications").select("*").order("created_at", { ascending: false }).limit(5000);
-      if (error) throw error;
-      const exportRows = (data || []).map(({ organizer_team_invite_code: _privateInviteCode, qualifying_submission: _legacyQualifyingFlag, ...application }) => application);
+      const [applications, teams, invites, memberships] = await Promise.all([
+        admin.from("applications").select("id,created_at,full_name,school_email,team_status,proposed_team_name")
+          .order("created_at", { ascending: true }).order("id", { ascending: true }).limit(5000),
+        admin.from("public_teams").select("id,team_name").limit(5000),
+        admin.from("team_invites").select("owner_application_id,public_team_id").is("revoked_at", null).limit(5000),
+        admin.from("team_join_requests").select("application_id,public_team_id").eq("status", "approved").limit(5000),
+      ]);
+      if (applications.error || teams.error || invites.error || memberships.error) {
+        throw applications.error || teams.error || invites.error || memberships.error;
+      }
+      const teamNames = new Map((teams.data || []).map((team) => [team.id, team.team_name]));
+      const teamByApplication = new Map<string, string>();
+      (invites.data || []).forEach((invite) => {
+        const teamName = teamNames.get(invite.public_team_id);
+        if (teamName) teamByApplication.set(invite.owner_application_id, teamName);
+      });
+      (memberships.data || []).forEach((membership) => {
+        const teamName = teamNames.get(membership.public_team_id);
+        if (teamName) teamByApplication.set(membership.application_id, teamName);
+      });
+      const exportRows = (applications.data || []).map((application, index) => ({
+        applicationNumber: index + 1,
+        name: application.full_name,
+        email: application.school_email,
+        team: teamByApplication.get(application.id)
+          || (application.team_status === "creating" && application.proposed_team_name ? application.proposed_team_name : "Not assigned"),
+      }));
       return respond(200, { applications: exportRows }, origin);
     }
 
