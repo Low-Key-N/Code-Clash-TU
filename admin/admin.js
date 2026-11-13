@@ -473,26 +473,6 @@ function teamPayload() {
   };
 }
 
-function csvCell(value) {
-  let text = Array.isArray(value) ? value.join(" | ") : value === null || value === undefined ? "" : String(value);
-  if (/^[=+\-@]/.test(text)) text = `'${text}`;
-  return `"${text.replaceAll('"', '""')}"`;
-}
-
-async function exportCsv(button) {
-  setBusy(button, true, "Preparing…");
-  try {
-    const { applications } = await adminRequest("exportApplications");
-    if (!applications.length) throw new Error("There are no applications to export.");
-    const headers = Object.keys(applications[0]);
-    const csv = [headers.map(csvCell).join(","), ...applications.map((row) => headers.map((header) => csvCell(row[header])).join(","))].join("\r\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a"); link.href = url; link.download = `code-clash-applications-${new Date().toISOString().slice(0, 10)}.csv`; link.click(); URL.revokeObjectURL(url);
-    setStatus(globalStatus, `${applications.length} applications exported.`);
-  } catch (error) { handleRequestError(error); }
-  finally { setBusy(button, false); }
-}
-
 function pdfSafeText(value) {
   return String(value || "")
     .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
@@ -524,27 +504,8 @@ function pdfEscape(value) {
   return value.replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");
 }
 
-function makeAccommodationPdf(accommodation) {
-  const submitted = accommodation.created_at ? new Date(accommodation.created_at).toLocaleString() : "Not available";
-  const documentLines = [
-    "CODE / CLASH - PARTICIPANT SUPPORT REQUEST",
-    "CONFIDENTIAL - ORGANIZER USE ONLY",
-    "",
-    `Participant: ${accommodation.full_name}`,
-    `Email: ${accommodation.school_email}`,
-    `School: ${accommodation.school || "Not provided"}`,
-    `Application status: ${accommodation.application_status}`,
-    `Submitted: ${submitted}`,
-    "",
-    "ACCESSIBILITY ACCOMMODATIONS",
-    ...wrapPdfText(displayRequest(accommodation.accessibility_accommodations)),
-    "",
-    "DIETARY RESTRICTIONS",
-    ...wrapPdfText(displayRequest(accommodation.dietary_restrictions)),
-    "",
-    `Exported: ${new Date().toLocaleString()}`,
-    "Handle and share this document only as needed to coordinate participant access.",
-  ].map(pdfSafeText);
+function makeTextPdf(lines) {
+  const documentLines = lines.map(pdfSafeText);
   const pageChunks = [];
   for (let index = 0; index < documentLines.length; index += 46) pageChunks.push(documentLines.slice(index, index + 46));
   const objects = [];
@@ -577,6 +538,90 @@ function makeAccommodationPdf(accommodation) {
   for (let id = 1; id < objects.length; id += 1) pdf += `${String(offsets[id]).padStart(10, "0")} 00000 n \n`;
   pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
   return new Blob([pdf], { type: "application/pdf" });
+}
+
+function makeAccommodationPdf(accommodation) {
+  const submitted = accommodation.created_at ? new Date(accommodation.created_at).toLocaleString() : "Not available";
+  return makeTextPdf([
+    "CODE / CLASH - PARTICIPANT SUPPORT REQUEST",
+    "CONFIDENTIAL - ORGANIZER USE ONLY",
+    "",
+    `Participant: ${accommodation.full_name}`,
+    `Email: ${accommodation.school_email}`,
+    `School: ${accommodation.school || "Not provided"}`,
+    `Application status: ${accommodation.application_status}`,
+    `Submitted: ${submitted}`,
+    "",
+    "ACCESSIBILITY ACCOMMODATIONS",
+    ...wrapPdfText(displayRequest(accommodation.accessibility_accommodations)),
+    "",
+    "DIETARY RESTRICTIONS",
+    ...wrapPdfText(displayRequest(accommodation.dietary_restrictions)),
+    "",
+    `Exported: ${new Date().toLocaleString()}`,
+    "Handle and share this document only as needed to coordinate participant access.",
+  ]);
+}
+
+function applicationPdfLabel(key) {
+  const labels = {
+    id: "Application ID", created_at: "Submitted", updated_at: "Last updated",
+    full_name: "Full name", school_email: "School email", graduation_year: "Graduation year",
+    experience_level: "Experience level", desired_roles: "Desired roles", project_interests: "Project interests",
+    team_status: "Team status", proposed_team_name: "Proposed team name", roles_needed: "Roles needed",
+    team_lookup: "Team lookup", join_role: "Join role", student_organization: "Student organization",
+    student_organization_original: "Original organization answer", application_status: "Application status",
+    organizer_notes: "Organizer notes", reviewed_at: "Reviewed", public_board_consent: "Public board consent",
+    marketing_consent: "Marketing consent", accessibility_accommodations: "Accessibility accommodations",
+    dietary_restrictions: "Dietary restrictions", qualifying_submission: "Qualifying submission",
+  };
+  return labels[key] || key.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function applicationPdfValue(key, value) {
+  if (value === null || value === undefined || value === "") return "Not provided";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (Array.isArray(value)) return value.length ? value.join(", ") : "None";
+  if (key.endsWith("_at")) {
+    const date = new Date(value);
+    if (!Number.isNaN(date.valueOf())) return date.toLocaleString();
+  }
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+
+function makeApplicationsPdf(applications) {
+  const lines = [
+    "CODE / CLASH - APPLICATION EXPORT",
+    "CONFIDENTIAL - ORGANIZER USE ONLY",
+    "",
+    `Applications: ${applications.length}`,
+    `Exported: ${new Date().toLocaleString()}`,
+  ];
+  applications.forEach((application, index) => {
+    lines.push("", `APPLICATION ${index + 1} OF ${applications.length}`, "");
+    Object.entries(application).forEach(([key, value]) => {
+      lines.push(...wrapPdfText(`${applicationPdfLabel(key)}: ${applicationPdfValue(key, value)}`, 78));
+    });
+  });
+  lines.push("", "Handle and share this document only as needed for event administration.");
+  return makeTextPdf(lines);
+}
+
+async function exportApplicationsPdf(button) {
+  setBusy(button, true, "Preparing…");
+  try {
+    const { applications } = await adminRequest("exportApplications");
+    if (!applications.length) throw new Error("There are no applications to export.");
+    const url = URL.createObjectURL(makeApplicationsPdf(applications));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `code-clash-applications-${new Date().toISOString().slice(0, 10)}.pdf`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setStatus(globalStatus, `${applications.length} applications exported as PDF.`);
+  } catch (error) { handleRequestError(error); }
+  finally { setBusy(button, false); }
 }
 
 function exportAccommodationPdf(accommodation, button) {
@@ -771,7 +816,7 @@ async function reviewJoinRequest(decision, button) {
 document.querySelector("#approve-join-request").addEventListener("click", (event) => reviewJoinRequest("approve", event.currentTarget));
 document.querySelector("#reject-join-request").addEventListener("click", (event) => reviewJoinRequest("reject", event.currentTarget));
 
-document.querySelector("#export-csv").addEventListener("click", (event) => exportCsv(event.currentTarget));
+document.querySelector("#export-pdf").addEventListener("click", (event) => exportApplicationsPdf(event.currentTarget));
 document.querySelector("#new-team").addEventListener("click", () => openTeam());
 document.querySelector("#copy-team-invite").addEventListener("click", async (event) => {
   const input = teamForm.elements.inviteCode;
