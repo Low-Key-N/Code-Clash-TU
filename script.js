@@ -195,6 +195,7 @@ function renderPublicTeams(teams) {
     const members = Array.isArray(team.members) ? team.members : [];
     const capacity = Math.max(2, Math.min(8, Number(team.capacity) || 4));
     const occupiedSlots = Math.max(members.length, Math.min(capacity, Number(team.occupiedSlots) || members.length));
+    const privateMemberCount = Math.max(0, occupiedSlots - members.length);
     const openSlots = Math.max(0, capacity - occupiedSlots);
     card.className = `queue-card${openSlots === 0 ? " queue-card-full" : ""}`;
 
@@ -219,8 +220,10 @@ function renderPublicTeams(teams) {
     });
     for (let slot = members.length; slot < occupiedSlots; slot += 1) {
       const privateMember = document.createElement("b");
-      privateMember.textContent = "•";
-      privateMember.title = "Private team member";
+      privateMember.className = "slot-private";
+      privateMember.textContent = "P";
+      privateMember.title = "Private member (name hidden by request)";
+      privateMember.setAttribute("aria-label", "Private team member");
       slots.append(privateMember);
     }
     for (let slot = occupiedSlots; slot < capacity; slot += 1) {
@@ -231,13 +234,17 @@ function renderPublicTeams(teams) {
 
     const memberList = document.createElement("p");
     memberList.className = "queue-members";
-    memberList.textContent = members.map((member) => `${member.firstName} — ${member.role}`).join(" · ") || "Team details coming soon";
+    const memberDetails = members.map((member) => `${member.firstName} — ${member.role}`);
+    if (privateMemberCount) memberDetails.push(`${privateMemberCount} private member${privateMemberCount === 1 ? "" : "s"}`);
+    memberList.textContent = memberDetails.join(" · ") || "No members listed yet";
     const need = document.createElement("p");
     const needText = document.createElement("strong");
-    needText.textContent = team.rolesNeeded?.length ? `Seeking ${team.rolesNeeded.join(" + ")}` : "Ready to build";
+    needText.textContent = team.rolesNeeded?.length
+      ? `Seeking ${team.rolesNeeded.join(" + ")}`
+      : openSlots > 0 ? "Open roles not specified" : "Ready to build";
     need.append(needText);
     const interests = document.createElement("small");
-    interests.textContent = team.projectInterests || "Project interests coming soon";
+    interests.textContent = team.projectInterests || "Project interests not listed";
     const availability = document.createElement("em");
     availability.textContent = openSlots ? `${openSlots} slot${openSlots === 1 ? "" : "s"} open` : "Full team";
     card.append(top, name, slots, memberList, need, interests, availability);
