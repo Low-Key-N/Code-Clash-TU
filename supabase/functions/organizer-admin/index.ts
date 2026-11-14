@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const roles = ["Builder", "Defender", "Analyst", "Designer", "Strategist"] as const;
+const experienceLevels = ["Beginner", "Intermediate", "Advanced"] as const;
 const applicationStatuses = ["submitted", "approved", "waitlisted", "rejected"] as const;
 const teamStatuses = ["draft", "published", "archived"] as const;
 const clubChallengeStatuses = ["pending", "qualified", "disqualified"] as const;
@@ -24,6 +25,8 @@ function respond(status: number, body: Json, origin: string | null) {
 }
 
 const clean = (value: unknown, max: number) => typeof value === "string" ? value.trim().slice(0, max) : "";
+const optional = (value: unknown, max: number) => clean(value, max) || null;
+const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254;
 const uuid = (value: unknown) => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value) ? value : null;
 const allowed = <T extends readonly string[]>(value: unknown, values: T) => typeof value === "string" && values.includes(value as T[number]) ? value as T[number] : null;
 const strings = (value: unknown, maxItems: number, maxLength: number) => Array.isArray(value)
@@ -157,6 +160,77 @@ Deno.serve(async (request) => {
         application_number: applicationNumbers.get(application.id),
       }));
       return respond(200, { applications: numberedApplications, count: count || 0, page, pageSize }, origin);
+    }
+
+    if (action === "applicationOptions") {
+      const { data, error } = await admin.from("clubs").select("id,name").eq("active", true).order("display_order").order("name");
+      if (error) throw error;
+      return respond(200, { clubs: data || [] }, origin);
+    }
+
+    if (action === "createApplication") {
+      const fullName = clean(body.fullName, 100);
+      const schoolEmail = clean(body.schoolEmail, 254).toLowerCase();
+      const school = clean(body.school, 150);
+      const major = clean(body.major, 120);
+      const graduationYear = Number(body.graduationYear);
+      const experienceLevel = allowed(body.experienceLevel, experienceLevels);
+      const desiredRoles = [...new Set(strings(body.desiredRoles, 5, 20))]
+        .filter((role) => roles.includes(role as typeof roles[number]));
+      const projectInterests = clean(body.projectInterests, 1000);
+      const status = allowed(body.status, applicationStatuses);
+      const notes = optional(body.notes, 2000);
+      const clubChoice = clean(body.studentOrganizationId, 40);
+      const clubId = clubChoice ? uuid(clubChoice) : null;
+      const portfolioUrl = optional(body.portfolioUrl, 500);
+
+      if (fullName.length < 2 || !isEmail(schoolEmail) || school.length < 2 || !major ||
+          !Number.isInteger(graduationYear) || graduationYear < 2026 || graduationYear > 2035 ||
+          !experienceLevel || !desiredRoles.length || projectInterests.length < 10 || !status ||
+          (clubChoice && !clubId) || body.confirmedAuthorization !== true) {
+        return respond(422, { error: "Check the required applicant fields and try again." }, origin);
+      }
+      if (portfolioUrl) {
+        try { if (new URL(portfolioUrl).protocol !== "https:") throw new Error(); }
+        catch { return respond(422, { error: "Portfolio URL must be a valid HTTPS address." }, origin); }
+      }
+
+      let club: { id: string; name: string } | null = null;
+      if (clubId) {
+        const clubResult = await admin.from("clubs").select("id,name").eq("id", clubId).eq("active", true).maybeSingle();
+        if (clubResult.error) throw clubResult.error;
+        if (!clubResult.data) return respond(422, { error: "Choose an active club assignment." }, origin);
+        club = clubResult.data;
+      }
+
+      const now = new Date().toISOString();
+      const { data: application, error: createError } = await admin.from("applications").insert({
+        full_name: fullName, school_email: schoolEmail, school, major, graduation_year: graduationYear,
+        experience_level: experienceLevel, desired_roles: desiredRoles, project_interests: projectInterests,
+        team_status: "solo", student_organization: club?.name || "None",
+        student_organization_original: club?.name || "None", student_organization_id: club?.id || null,
+        proposed_team_name: null, roles_needed: [], team_lookup: null,
+        phone: optional(body.phone, 30), pronouns: optional(body.pronouns, 50),
+        dietary_restrictions: optional(body.dietaryRestrictions, 500) || "None",
+        accessibility_accommodations: optional(body.accessibilityAccommodations, 1000), portfolio_url: portfolioUrl,
+        public_board_consent: body.publicBoardConsent === true, marketing_consent: body.marketingConsent === true,
+        agreed_to_rules_at: now, confirmed_accurate_at: now, application_status: status,
+        organizer_notes: notes, updated_at: now,
+        ...(status !== "submitted" ? { reviewed_at: now, reviewed_by: authData.user.id } : {}),
+      }).select("id,full_name,application_status").single();
+      if (createError?.code === "23505") return respond(409, { error: "An application already exists for that email address." }, origin);
+      if (createError) throw createError;
+
+      if (club) {
+        const { error: membershipError } = await admin.from("application_club_memberships").insert({
+          application_id: application.id, club_id: club.id, source: "organizer", assigned_by: reviewer,
+        });
+        if (membershipError) {
+          await admin.from("applications").delete().eq("id", application.id);
+          throw membershipError;
+        }
+      }
+      return respond(201, { application, message: `Application created for ${fullName}.` }, origin);
     }
 
     if (action === "listAccommodations") {

@@ -18,8 +18,10 @@ const globalStatus = document.querySelector("#global-status");
 const applicationsBody = document.querySelector("#applications-body");
 const accommodationsBody = document.querySelector("#accommodations-body");
 const applicationDialog = document.querySelector("#application-dialog");
+const newApplicationDialog = document.querySelector("#new-application-dialog");
 const teamDialog = document.querySelector("#team-dialog");
 const reviewForm = document.querySelector("#review-form");
+const newApplicationForm = document.querySelector("#new-application-form");
 const teamForm = document.querySelector("#team-form");
 const assignmentForm = document.querySelector("#assignment-form");
 const membershipForm = document.querySelector("#membership-form");
@@ -167,6 +169,28 @@ async function loadApplications() {
     state.applications = result.applications;
     state.count = result.count;
     renderApplications();
+    setStatus(globalStatus);
+  } catch (error) { handleRequestError(error); }
+}
+
+async function openNewApplication() {
+  setStatus(globalStatus, "Loading applicant form...");
+  setStatus(document.querySelector("#new-application-status"));
+  try {
+    const { clubs } = await adminRequest("applicationOptions");
+    newApplicationForm.reset();
+    newApplicationForm.elements.graduationYear.value = "2026";
+    newApplicationForm.elements.experienceLevel.value = "Beginner";
+    newApplicationForm.elements.status.value = "submitted";
+    const noAffiliation = element("option", "", "None / not affiliated");
+    noAffiliation.value = "";
+    newApplicationForm.elements.studentOrganizationId.replaceChildren(noAffiliation, ...(clubs || []).map((club) => {
+      const option = element("option", "", club.name);
+      option.value = club.id;
+      return option;
+    }));
+    newApplicationDialog.showModal();
+    newApplicationForm.elements.fullName.focus();
     setStatus(globalStatus);
   } catch (error) { handleRequestError(error); }
 }
@@ -695,6 +719,53 @@ document.querySelector("#application-filter").addEventListener("change", (event)
 document.querySelector("#previous-page").addEventListener("click", () => { if (state.page > 1) { state.page -= 1; loadApplications(); } });
 document.querySelector("#next-page").addEventListener("click", () => { if (state.page * state.pageSize < state.count) { state.page += 1; loadApplications(); } });
 applicationsBody.addEventListener("click", (event) => { const button = event.target.closest("[data-application-id]"); if (button) openApplication(button.dataset.applicationId); });
+document.querySelector("#new-application").addEventListener("click", openNewApplication);
+
+newApplicationForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const desiredRoles = [...newApplicationForm.querySelectorAll('[name="desiredRoles"]:checked')].map((input) => input.value);
+  if (!desiredRoles.length) {
+    setStatus(document.querySelector("#new-application-status"), "Choose at least one desired role.", true);
+    newApplicationForm.querySelector('[name="desiredRoles"]').focus();
+    return;
+  }
+  const button = newApplicationForm.querySelector('button[type="submit"]');
+  setBusy(button, true, "Creating...");
+  setStatus(document.querySelector("#new-application-status"));
+  try {
+    const result = await adminRequest("createApplication", {
+      fullName: newApplicationForm.elements.fullName.value,
+      schoolEmail: newApplicationForm.elements.schoolEmail.value,
+      school: newApplicationForm.elements.school.value,
+      major: newApplicationForm.elements.major.value,
+      graduationYear: Number(newApplicationForm.elements.graduationYear.value),
+      experienceLevel: newApplicationForm.elements.experienceLevel.value,
+      desiredRoles,
+      projectInterests: newApplicationForm.elements.projectInterests.value,
+      studentOrganizationId: newApplicationForm.elements.studentOrganizationId.value,
+      status: newApplicationForm.elements.status.value,
+      phone: newApplicationForm.elements.phone.value,
+      pronouns: newApplicationForm.elements.pronouns.value,
+      portfolioUrl: newApplicationForm.elements.portfolioUrl.value,
+      dietaryRestrictions: newApplicationForm.elements.dietaryRestrictions.value,
+      accessibilityAccommodations: newApplicationForm.elements.accessibilityAccommodations.value,
+      publicBoardConsent: newApplicationForm.elements.publicBoardConsent.checked,
+      marketingConsent: newApplicationForm.elements.marketingConsent.checked,
+      confirmedAuthorization: newApplicationForm.elements.confirmedAuthorization.checked,
+      notes: newApplicationForm.elements.notes.value,
+    });
+    newApplicationDialog.close();
+    state.page = 1; state.search = ""; state.status = "";
+    document.querySelector("#application-search").value = "";
+    document.querySelector("#application-filter").value = "";
+    await loadApplications();
+    const fresh = await adminRequest("bootstrap"); state.teams = fresh.teams; renderOverview(fresh.counts); renderTeams();
+    setStatus(globalStatus, result.message);
+  } catch (error) {
+    setStatus(document.querySelector("#new-application-status"), error.message, true);
+    if (error.status === 401 || error.status === 403) { newApplicationDialog.close(); handleRequestError(error); }
+  } finally { setBusy(button, false); }
+});
 
 let accommodationSearchTimer;
 document.querySelector("#accommodation-search").addEventListener("input", (event) => {

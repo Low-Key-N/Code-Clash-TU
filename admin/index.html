@@ -8,9 +8,9 @@
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <title>Organizer HQ | Code/Clash</title>
     <link rel="icon" type="image/png" href="../assets/code-clash-clock-tower.png" />
-    <link rel="stylesheet" href="admin.css?v=20261026-2" />
+    <link rel="stylesheet" href="admin.css?v=20261113-1" />
     <script src="../supabase-config.js?v=20261019-1"></script>
-    <script src="admin.js?v=20261026-2" defer></script>
+    <script src="admin.js?v=20261113-1" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#admin-main">Skip to dashboard</a>
@@ -82,6 +82,7 @@
             <div class="toolbar">
               <label class="search-field">Search applications<input id="application-search" type="search" placeholder="Name or email" /></label>
               <label>Status<select id="application-filter"><option value="">All statuses</option><option value="submitted">Submitted</option><option value="approved">Approved</option><option value="waitlisted">Waitlisted</option><option value="rejected">Rejected</option></select></label>
+              <button class="comic-button" id="new-application" type="button">New applicant</button>
               <button class="comic-button" id="export-pdf" type="button">Export as PDF</button>
             </div>
             <div class="table-shell">
@@ -168,6 +169,38 @@
         <label>Current club assignment<select name="studentOrganizationId"></select><span class="field-help">Each applicant can represent one organization. Their original response remains visible above until you save a change.</span></label>
         <label>Private organizer notes<textarea name="notes" maxlength="2000" rows="5"></textarea></label>
         <div class="dialog-actions split-actions"><button class="row-button danger-button" id="delete-application" type="button">Delete application</button><button class="comic-button" type="submit">Save review</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="new-application-dialog" aria-labelledby="new-application-dialog-title">
+      <div class="dialog-heading"><div><p class="eyebrow">Participant file</p><h2 id="new-application-dialog-title">New applicant</h2></div><button class="close-button" type="button" data-close="new-application-dialog" aria-label="Close new applicant form">×</button></div>
+      <form id="new-application-form">
+        <p class="field-help">Creates a solo applicant record. After saving, use the existing application review to approve them or assign them to a team.</p>
+        <div class="form-grid applicant-form-grid">
+          <label>Full name<input name="fullName" maxlength="100" autocomplete="name" required /></label>
+          <label>School email<input name="schoolEmail" type="email" maxlength="254" autocomplete="email" required /></label>
+          <label>College or university<input name="school" maxlength="150" required /></label>
+          <label>Major / program<input name="major" maxlength="120" required /></label>
+          <label>Graduation year<input name="graduationYear" type="number" min="2026" max="2035" value="2026" required /></label>
+          <label>Experience level<select name="experienceLevel" required><option value="Beginner">Beginner</option><option value="Intermediate">Intermediate</option><option value="Advanced">Advanced</option></select></label>
+        </div>
+        <fieldset><legend>Desired roles</legend><div class="role-choices" id="new-application-roles"><label><input name="desiredRoles" type="checkbox" value="Builder" />Builder</label><label><input name="desiredRoles" type="checkbox" value="Defender" />Defender</label><label><input name="desiredRoles" type="checkbox" value="Analyst" />Analyst</label><label><input name="desiredRoles" type="checkbox" value="Designer" />Designer</label><label><input name="desiredRoles" type="checkbox" value="Strategist" />Strategist</label></div></fieldset>
+        <label>Project interests<textarea name="projectInterests" minlength="10" maxlength="1000" rows="4" required></textarea></label>
+        <div class="form-grid applicant-form-grid">
+          <label>Club assignment<select name="studentOrganizationId"><option value="">None / not affiliated</option></select></label>
+          <label>Initial decision<select name="status" required><option value="submitted">Submitted</option><option value="approved">Approved</option><option value="waitlisted">Waitlisted</option><option value="rejected">Rejected</option></select></label>
+          <label>Phone<input name="phone" type="tel" maxlength="30" autocomplete="tel" /></label>
+          <label>Pronouns<input name="pronouns" maxlength="50" /></label>
+        </div>
+        <label>Portfolio URL<input name="portfolioUrl" type="url" maxlength="500" placeholder="https://" /></label>
+        <label>Dietary restrictions<textarea name="dietaryRestrictions" maxlength="500" rows="3" placeholder="Leave blank for none"></textarea></label>
+        <label>Accessibility accommodations<textarea name="accessibilityAccommodations" maxlength="1000" rows="3"></textarea></label>
+        <label class="check-label"><input name="publicBoardConsent" type="checkbox" /> Applicant consents to their first name appearing on the public team board.</label>
+        <label class="check-label"><input name="marketingConsent" type="checkbox" /> Applicant consents to event updates and future announcements.</label>
+        <label class="check-label"><input name="confirmedAuthorization" type="checkbox" required /> I confirm the applicant provided this information and agreed to the event rules.</label>
+        <label>Private organizer notes<textarea name="notes" maxlength="2000" rows="4"></textarea></label>
+        <p class="form-status" id="new-application-status" role="status" aria-live="polite"></p>
+        <div class="dialog-actions"><button class="comic-button" type="submit">Create applicant</button></div>
       </form>
     </dialog>
 
