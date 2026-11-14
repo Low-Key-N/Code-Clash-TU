@@ -1433,6 +1433,11 @@ h2 { margin-bottom: 20px; font-size: clamp(2.3rem, 5vw, 4.3rem); font-style: ita
 .sponsor-featured-copy strong { font-size: clamp(2rem, 4vw, 3.5rem); }
 .sponsor-featured-logo { display: block; width: min(100%, 310px); max-height: 112px; object-fit: contain; filter: brightness(0); }
 .sponsor-featured-copy p { padding-left: 18px; border-left: 3px solid var(--ink); color: var(--ink); font-size: .76rem; font-weight: 750; }
+.sponsor-featured-tu { align-content: center; }
+.sponsor-featured-tu h3 { margin: 0; font-size: clamp(1.7rem, 3.3vw, 2.8rem); line-height: .95; text-transform: uppercase; }
+.sponsor-featured-tu ul { display: grid; gap: 5px; margin: 5px 0 0; padding: 0; list-style: none; }
+.sponsor-featured-tu li { font-size: .72rem; font-weight: 850; line-height: 1.25; }
+.sponsor-featured-tu li + li { padding-top: 5px; border-top: 2px solid rgba(21, 21, 0, .25); }
 .sponsor-featured:focus-within {
   box-shadow: 6px 6px 0 var(--ink);
   transform: translate(-2px, -2px);
@@ -1464,6 +1469,19 @@ h2 { margin-bottom: 20px; font-size: clamp(2.3rem, 5vw, 4.3rem); font-style: ita
   transform: rotate(-1deg);
 }
 .community-partner-card img { width: 82px; aspect-ratio: 1; object-fit: cover; border: 2px solid var(--ink); border-radius: 50%; }
+.community-partner-text-badge {
+  display: grid;
+  width: 82px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--tu-gold);
+  color: var(--ink);
+  font-family: Impact, "Arial Narrow", sans-serif;
+  font-size: 1.65rem;
+  letter-spacing: .03em;
+}
 .community-partner-logo-frame {
   width: 82px;
   aspect-ratio: 1;
@@ -1846,6 +1864,7 @@ footer p { margin: 0; }
   .sponsor-featured-copy p { padding: 16px 0 0; border-top: 3px solid var(--ink); border-left: 0; }
   .community-partner-card { grid-template-columns: 64px 1fr; gap: 11px; padding: 10px; }
   .community-partner-card img { width: 64px; }
+  .community-partner-text-badge { width: 64px; font-size: 1.35rem; }
   .community-partner-logo-frame { width: 64px; }
   .community-partner-card .community-partner-logo-frame img { width: 100%; }
   .community-partner-card h3 { font-size: .92rem; }
