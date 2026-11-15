@@ -959,7 +959,7 @@ nav a { font-size: .8rem; font-weight: 900; text-decoration: none; text-transfor
 .project-showcase.is-changing .showcase-image-fallback { animation: showcase-image-swap .42s ease-out both; }
 .project-showcase.is-changing .showcase-caption { animation: showcase-copy-swap .34s .08s ease-out both; }
 .showcase-copy-topline { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 11px; border-bottom: 2px solid var(--tu-gold); font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-.showcase-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 18px 0 0; border-block: 1px solid rgba(255,255,255,.24); }
+.showcase-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 18px 0 0; border-block: 1px solid rgba(255,255,255,.24); }
 .showcase-stats div { display: flex; min-width: 0; flex-direction: column; padding: 15px 12px 14px; border-right: 1px solid rgba(255,255,255,.28); }
 .showcase-stats div:first-child { padding-left: 0; }
 .showcase-stats div:last-child { padding-right: 0; border-right: 0; }
