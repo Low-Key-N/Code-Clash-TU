@@ -26,7 +26,9 @@ Deno.serve(async (request) => {
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, secretKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data, error } = await supabase.from("public_teams")
     .select("id,team_name,member_first_names,member_roles,roles_needed,approved_project_interests,capacity,occupied_slots")
-    .eq("publication_status", "published").order("display_order").order("published_at").limit(50);
+    .eq("publication_status", "published")
+    .eq("club_challenge_status", "qualified")
+    .order("display_order").order("published_at").limit(50);
   if (error) {
     console.error("public_teams query failed", error.code, error.message);
     return response(503, { error: "Team board is temporarily unavailable.", code: "TEAM_BOARD_QUERY" }, origin);

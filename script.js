@@ -34,28 +34,26 @@ window.addEventListener("resize", () => {
   if (window.innerWidth > 860) closeMenu();
 });
 
-// Replace the two placeholder strings on each entry when official project and team names are available.
 const clashWinners = [
-  { award: "1st Place Prize", name: "CareVault", project: "Health care without the guesswork." },
-  { award: "AI & Data Track", name: "Somewhat Simple Activity Log", project: "A clearer view of every game and hour played." },
-  { award: "Cybersecurity & Privacy", name: "SafeHire", project: "The Cybersecurity & Privacy Track winning creation." },
-  { award: "Community & Social Impact", name: "Freshstart", project: "A winning creation focused on positive community impact." },
+  { award: "1st Place Prize", name: "CareVault", team: "Team Hermes", project: "Health care without the guesswork." },
+  { award: "AI & Data Track", name: "Somewhat Simple Activity Log", team: "Team Circuit", project: "An attempt of a re-implementation of tallbl0nde's NX-Activity-Log homebrew software for (hackable) Nintendo Switch devices." },
+  { award: "Cybersecurity & Privacy", name: "SafeHire", team: "Team 91 Bulls", project: "Paste a recruiter text, email or job post. SafeHire tells you if it looks like a job scam before you share your SSN or bank info." },
+  { award: "Community & Social Impact", name: "Freshstart", team: "Team Aymo", project: "Fresh Start is an AI-powered web app helping formerly incarcerated individuals rebuild their lives with personalized 30-60-90-day plans, housing, jobs, education, and interview preparation." },
 ];
 
 const clashProjects = [
-  { award: "1st Place Creation", name: "CareVault", project: "Keeps health records together, estimates visit costs, and explains paperwork in plain language." },
-  { award: "AI & Data Creation", name: "Somewhat Simple Activity Log", project: "A Nintendo Switch activity tracker that ranks games by total playtime." },
-  { award: "Cybersecurity & Privacy", name: "SafeHire", project: "The Cybersecurity & Privacy Track winning creation." },
-  { award: "Community & Social Impact", name: "Freshstart", project: "The Community & Social Impact Track winning creation." },
+  { award: "1st Place Creation", caption: "First place", name: "CareVault", team: "Team Hermes", project: "Keeps health records together, estimates visit costs, and explains paperwork in plain language.", image: "assets/project-showcase/carevault.jpg?v=20261115", initials: "CV" },
+  { award: "AI & Data Creation", caption: "AI & Data", name: "Somewhat Simple Activity Log", team: "Team Circuit", project: "An attempt of a re-implementation of tallbl0nde's NX-Activity-Log homebrew software for (hackable) Nintendo Switch devices.", image: "assets/project-showcase/activity-log.jpg?v=20261115", initials: "AL" },
+  { award: "Cybersecurity & Privacy", caption: "Cybersecurity", name: "SafeHire", team: "Team 91 Bulls", project: "Paste a recruiter text, email or job post. SafeHire tells you if it looks like a job scam before you share your SSN or bank info.", image: "assets/project-showcase/safehire.png?v=20261115-2", initials: "SH" },
+  { award: "Community & Social Impact", caption: "Social impact", name: "Freshstart", team: "Team Aymo", project: "Fresh Start is an AI-powered web app helping formerly incarcerated individuals rebuild their lives with personalized 30-60-90-day plans, housing, jobs, education, and interview preparation.", image: "assets/project-showcase/freshstart.png?v=20261115", initials: "FS" },
 ];
 
-const spotlightModes = {
-  winners: { kicker: "Winner spotlight", itemName: "winner", items: clashWinners },
-  projects: { kicker: "Project showcase", itemName: "project", items: clashProjects, link: true },
-};
+clashProjects.forEach((project) => {
+  const preloadedImage = new Image();
+  preloadedImage.src = project.image;
+});
 
 const winnerSlide = document.querySelector(".winner-slide");
-const winnerKicker = document.querySelector("#winner-spotlight-title");
 const winnerAward = document.querySelector("#spotlight-label");
 const winnerName = document.querySelector("#spotlight-title");
 const winnerProject = document.querySelector("#spotlight-copy");
@@ -63,11 +61,9 @@ const winnerPosition = document.querySelector("#spotlight-position");
 const winnerDots = document.querySelector("#spotlight-dots");
 const winnerPrevious = document.querySelector("#spotlight-previous");
 const winnerNext = document.querySelector("#spotlight-next");
-const spotlightGalleryLink = document.querySelector("#spotlight-gallery-link");
-const spotlightTabs = [...document.querySelectorAll("[data-spotlight-mode]")];
-let activeSpotlightMode = "winners";
 let activeWinner = 0;
 let winnerInterval;
+let winnerManuallyPaused = false;
 
 let winnerDotItems = [];
 
@@ -81,16 +77,13 @@ function makeSpotlightDots(items) {
 }
 
 function showWinner(index, animate = true) {
-  const mode = spotlightModes[activeSpotlightMode];
-  activeWinner = (index + mode.items.length) % mode.items.length;
-  const winner = mode.items[activeWinner];
+  activeWinner = (index + clashWinners.length) % clashWinners.length;
+  const winner = clashWinners[activeWinner];
   winnerAward.textContent = winner.award;
   winnerName.textContent = winner.name;
-  winnerProject.textContent = winner.project;
-  winnerPosition.textContent = `${String(activeWinner + 1).padStart(2, "0")} / ${String(mode.items.length).padStart(2, "0")}`;
-  winnerDots.setAttribute("aria-label", `${mode.itemName} ${activeWinner + 1} of ${mode.items.length}`);
-  winnerPrevious.setAttribute("aria-label", `Show previous ${mode.itemName}`);
-  winnerNext.setAttribute("aria-label", `Show next ${mode.itemName}`);
+  winnerProject.textContent = `${winner.team} · ${winner.project}`;
+  winnerPosition.textContent = `${String(activeWinner + 1).padStart(2, "0")} / ${String(clashWinners.length).padStart(2, "0")}`;
+  winnerDots.setAttribute("aria-label", `Winner ${activeWinner + 1} of ${clashWinners.length}`);
   winnerDotItems.forEach((dot, dotIndex) => dot.classList.toggle("is-active", dotIndex === activeWinner));
   if (animate && !prefersReducedMotion.matches) {
     winnerSlide.classList.remove("is-changing");
@@ -101,42 +94,193 @@ function showWinner(index, animate = true) {
 
 function startWinnerCycle() {
   window.clearInterval(winnerInterval);
-  if (!prefersReducedMotion.matches) winnerInterval = window.setInterval(() => showWinner(activeWinner + 1), 5000);
+  if (!prefersReducedMotion.matches && !winnerManuallyPaused) winnerInterval = window.setInterval(() => showWinner(activeWinner + 1), 8000);
 }
 
-function setSpotlightMode(modeName) {
-  activeSpotlightMode = modeName;
-  activeWinner = 0;
-  const mode = spotlightModes[modeName];
-  winnerKicker.textContent = mode.kicker;
-  spotlightGalleryLink.hidden = !mode.link;
-  makeSpotlightDots(mode.items);
-  spotlightTabs.forEach((tab) => {
-    const active = tab.dataset.spotlightMode === modeName;
-    tab.setAttribute("aria-selected", String(active));
-    tab.tabIndex = active ? 0 : -1;
-  });
-  winnerSlide.setAttribute("aria-labelledby", `${modeName}-view-tab`);
-  showWinner(0);
-  startWinnerCycle();
+function manuallyShowWinner(index) {
+  winnerManuallyPaused = true;
+  window.clearInterval(winnerInterval);
+  showWinner(index);
 }
 
-spotlightTabs.forEach((tab, tabIndex) => {
-  tab.addEventListener("click", () => setSpotlightMode(tab.dataset.spotlightMode));
-  tab.addEventListener("keydown", (event) => {
-    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
-    event.preventDefault();
-    const direction = event.key === 'ArrowRight' ? 1 : -1;
-    const nextTab = spotlightTabs[(tabIndex + direction + spotlightTabs.length) % spotlightTabs.length];
-    nextTab.focus();
-    setSpotlightMode(nextTab.dataset.spotlightMode);
-  });
-});
-winnerPrevious.addEventListener("click", () => { showWinner(activeWinner - 1); startWinnerCycle(); });
-winnerNext.addEventListener("click", () => { showWinner(activeWinner + 1); startWinnerCycle(); });
-makeSpotlightDots(spotlightModes.winners.items);
+winnerPrevious.addEventListener("click", () => manuallyShowWinner(activeWinner - 1));
+winnerNext.addEventListener("click", () => manuallyShowWinner(activeWinner + 1));
+makeSpotlightDots(clashWinners);
 showWinner(0, false);
 startWinnerCycle();
+
+const comicCover = document.querySelector(".comic-cover");
+const projectShowcase = document.querySelector("#project-showcase");
+const openProjectShowcase = document.querySelector("#open-project-showcase");
+const closeProjectShowcase = document.querySelector("#close-project-showcase");
+const seeWinners = document.querySelector(".nav-cta");
+const showcaseAward = document.querySelector("#showcase-award");
+const showcaseTitle = document.querySelector("#showcase-title");
+const showcaseDescription = document.querySelector("#showcase-description");
+const showcaseTeam = document.querySelector("#showcase-team");
+const showcasePosition = document.querySelector("#showcase-position");
+const showcaseImage = document.querySelector("#showcase-image");
+const showcaseImageFallback = document.querySelector("#showcase-image-fallback");
+const showcaseFallbackMark = document.querySelector("#showcase-fallback-mark");
+const showcaseFallbackTitle = document.querySelector("#showcase-fallback-title");
+const showcaseCaptionAward = document.querySelector("#showcase-caption-award");
+const showcaseCaptionTitle = document.querySelector("#showcase-caption-title");
+const showcasePrevious = document.querySelector("#showcase-previous");
+const showcaseNext = document.querySelector("#showcase-next");
+const showcaseDots = document.querySelector("#showcase-dots");
+const coverLayers = [...comicCover.querySelectorAll(".cover-imprint, .cover-date, .cover-copy, .winner-spotlight")];
+let activeProject = 0;
+let showcaseCloseTimer;
+let showcaseInterval;
+let showcaseManuallyPaused = false;
+let showcaseNavigationPending = false;
+
+const showcaseDotItems = clashProjects.map(() => {
+  const dot = document.createElement("span");
+  dot.setAttribute("aria-hidden", "true");
+  showcaseDots.append(dot);
+  return dot;
+});
+
+function showProject(index, animate = true) {
+  activeProject = (index + clashProjects.length) % clashProjects.length;
+  const project = clashProjects[activeProject];
+  showcaseAward.textContent = project.award;
+  showcaseTitle.textContent = project.name;
+  showcaseTeam.textContent = project.team;
+  showcaseDescription.textContent = project.project;
+  showcasePosition.textContent = `${String(activeProject + 1).padStart(2, "0")} / ${String(clashProjects.length).padStart(2, "0")}`;
+  showcaseDots.setAttribute("aria-label", `Project ${activeProject + 1} of ${clashProjects.length}`);
+  showcaseFallbackMark.textContent = project.initials;
+  showcaseFallbackTitle.textContent = project.name;
+  showcaseCaptionAward.textContent = project.caption;
+  showcaseCaptionTitle.textContent = project.name;
+  showcaseImage.alt = `${project.name} project screenshot`;
+  showcaseImage.hidden = false;
+  showcaseImageFallback.hidden = true;
+  showcaseImage.src = project.image;
+  window.setTimeout(() => {
+    if (showcaseImage.complete && !showcaseImage.naturalWidth) {
+      showcaseImage.hidden = true;
+      showcaseImageFallback.hidden = false;
+    }
+  }, 0);
+  showcaseDotItems.forEach((dot, dotIndex) => dot.classList.toggle("is-active", dotIndex === activeProject));
+  if (animate && !prefersReducedMotion.matches) {
+    projectShowcase.classList.remove("is-changing");
+    void projectShowcase.offsetWidth;
+    projectShowcase.classList.add("is-changing");
+  }
+}
+
+showcaseImage.addEventListener("load", () => {
+  showcaseImage.hidden = false;
+  showcaseImageFallback.hidden = true;
+});
+showcaseImage.addEventListener("error", () => {
+  showcaseImage.hidden = true;
+  showcaseImageFallback.hidden = false;
+});
+
+function setCoverLayersInactive(inactive) {
+  coverLayers.forEach((layer) => { layer.inert = inactive; });
+}
+
+function startShowcaseCycle() {
+  window.clearInterval(showcaseInterval);
+  if (!prefersReducedMotion.matches && !showcaseManuallyPaused) showcaseInterval = window.setInterval(() => showProject(activeProject + 1), 9000);
+}
+
+function manuallyShowProject(index) {
+  showcaseManuallyPaused = true;
+  window.clearInterval(showcaseInterval);
+  showProject(index);
+}
+
+function revealProjectShowcase() {
+  window.clearTimeout(showcaseCloseTimer);
+  window.clearInterval(winnerInterval);
+  showcaseManuallyPaused = false;
+  showProject(0, false);
+  startShowcaseCycle();
+  projectShowcase.hidden = false;
+  setCoverLayersInactive(true);
+  openProjectShowcase.setAttribute("aria-expanded", "true");
+  const showcaseUrl = new URL(window.location.href);
+  showcaseUrl.searchParams.set("showcase", "1");
+  window.history.replaceState(null, "", `${showcaseUrl.pathname}${showcaseUrl.search}${showcaseUrl.hash}`);
+  comicCover.classList.add("showcase-open");
+  window.requestAnimationFrame(() => projectShowcase.classList.add("is-visible"));
+  closeProjectShowcase.focus({ preventScroll: true });
+}
+
+function hideProjectShowcase() {
+  window.clearInterval(showcaseInterval);
+  projectShowcase.classList.remove("is-visible");
+  comicCover.classList.remove("showcase-open");
+  setCoverLayersInactive(false);
+  openProjectShowcase.setAttribute("aria-expanded", "false");
+  const coverUrl = new URL(window.location.href);
+  coverUrl.searchParams.delete("showcase");
+  window.history.replaceState(null, "", `${coverUrl.pathname}${coverUrl.search}${coverUrl.hash}`);
+  const finishClose = () => {
+    projectShowcase.hidden = true;
+    openProjectShowcase.focus({ preventScroll: true });
+    startWinnerCycle();
+  };
+  if (prefersReducedMotion.matches) finishClose();
+  else showcaseCloseTimer = window.setTimeout(finishClose, 480);
+}
+
+function openShowcaseFromNavigation(event) {
+  event.preventDefault();
+  closeMenu();
+  if (showcaseNavigationPending) return;
+  showcaseNavigationPending = true;
+
+  let hasOpened = false;
+  let scrollCheckFrame;
+  let forceTopTimer;
+  const openAfterScroll = () => {
+    if (hasOpened) return;
+    hasOpened = true;
+    showcaseNavigationPending = false;
+    window.cancelAnimationFrame(scrollCheckFrame);
+    window.clearTimeout(forceTopTimer);
+    revealProjectShowcase();
+  };
+  const waitForTop = () => {
+    if (window.scrollY <= 2) {
+      openAfterScroll();
+      return;
+    }
+    scrollCheckFrame = window.requestAnimationFrame(waitForTop);
+  };
+
+  if (window.scrollY < 2 || prefersReducedMotion.matches) {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    scrollCheckFrame = window.requestAnimationFrame(waitForTop);
+    return;
+  }
+
+  window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  scrollCheckFrame = window.requestAnimationFrame(waitForTop);
+  forceTopTimer = window.setTimeout(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, 2500);
+}
+
+openProjectShowcase.addEventListener("click", revealProjectShowcase);
+seeWinners.addEventListener("click", openShowcaseFromNavigation);
+closeProjectShowcase.addEventListener("click", hideProjectShowcase);
+showcasePrevious.addEventListener("click", () => manuallyShowProject(activeProject - 1));
+showcaseNext.addEventListener("click", () => manuallyShowProject(activeProject + 1));
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !projectShowcase.hidden) hideProjectShowcase();
+});
+window.addEventListener("load", () => {
+  if (new URLSearchParams(window.location.search).has("showcase")) revealProjectShowcase();
+}, { once: true });
 
 const revealObserver = new IntersectionObserver(
   (entries) => {
@@ -165,9 +309,9 @@ const assemblyContent = {
     copy: "You can be one, mix a few, or discover yours during the weekend.",
   },
   "teams-tab": {
-    eyebrow: "Assembly queue",
-    title: "The teams are assembling.",
-    copy: "See who has formed up, which roles are missing, and where your skills can land.",
+    eyebrow: "Qualifying teams",
+    title: "The finalists assembled.",
+    copy: "Meet the teams whose final submissions qualified for Code/Clash.",
   },
 };
 
@@ -256,7 +400,7 @@ function teamBoardState(title, detail) {
 function renderPublicTeams(teams) {
   assembledTeamCount.textContent = String(teams.length).padStart(2, "0");
   if (!teams.length) {
-    teamBoardState("No teams published yet.", "Organizer-approved teams will appear here once assembly begins.");
+    teamBoardState("No qualifying teams yet.", "Teams will appear here after their final submissions qualify.");
     return;
   }
 

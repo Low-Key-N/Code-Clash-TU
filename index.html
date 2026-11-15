@@ -42,9 +42,9 @@
     />
     <title>Towson University Hackathon 2026 | Code Clash</title>
     <link rel="icon" type="image/png" href="assets/code-clash-clock-tower.png" />
-    <link rel="stylesheet" href="styles.css?v=20261115-2" />
+  <link rel="stylesheet" href="styles.css?v=20261115-21" />
     <script src="supabase-config.js?v=20261019-1"></script>
-    <script src="script.js?v=20261115-6" defer></script>
+    <script src="script.js?v=20261115-26" defer></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -109,7 +109,7 @@
         <a class="devpost-tab" href="https://devpost.com/" target="_blank" rel="noopener noreferrer" hidden>
           Devpost <span aria-hidden="true">↗</span>
         </a>
-        <a class="nav-cta" href="#winners">See the winners</a>
+        <a class="nav-cta" href="#top">See the winners</a>
       </nav>
     </header>
 
@@ -153,23 +153,56 @@
             <span>Clash #001</span>
             <span id="spotlight-position">01 / 04</span>
           </div>
-          <div class="spotlight-tabs" role="tablist" aria-label="Code Clash highlights">
-            <button id="winners-view-tab" type="button" role="tab" aria-selected="true" aria-controls="spotlight-slide" data-spotlight-mode="winners">Winners</button>
-            <button id="projects-view-tab" type="button" role="tab" aria-selected="false" aria-controls="spotlight-slide" data-spotlight-mode="projects" tabindex="-1">Projects</button>
-          </div>
           <p class="winner-kicker" id="winner-spotlight-title">Winner spotlight</p>
-          <div class="winner-slide" id="spotlight-slide" role="tabpanel" aria-labelledby="winners-view-tab" aria-live="polite" aria-atomic="true">
+          <div class="winner-slide" id="spotlight-slide" aria-live="polite" aria-atomic="true">
             <p id="spotlight-label">1st Place Prize</p>
             <h2 id="spotlight-title">CareVault</h2>
-            <p id="spotlight-copy">Health care without the guesswork.</p>
+            <p id="spotlight-copy">Team Hermes · Health care without the guesswork.</p>
           </div>
-          <a class="spotlight-gallery-link" id="spotlight-gallery-link" href="https://code-clash.devpost.com/project-gallery" target="_blank" rel="noopener noreferrer" hidden>View every project on Devpost <span aria-hidden="true">&#8599;</span></a>
           <div class="winner-controls">
             <button id="spotlight-previous" type="button" aria-label="Show previous winner">&#8592;</button>
             <div id="spotlight-dots" aria-label="Winner 1 of 4"></div>
             <button id="spotlight-next" type="button" aria-label="Show next winner">&#8594;</button>
           </div>
+          <button class="open-showcase" id="open-project-showcase" type="button" aria-expanded="false" aria-controls="project-showcase">View project showcase <span aria-hidden="true">&#8594;</span></button>
         </aside>
+
+        <section class="project-showcase" id="project-showcase" aria-labelledby="showcase-title" hidden>
+          <div class="showcase-copy">
+            <div class="showcase-copy-topline">
+              <span>Code/Clash archives</span>
+              <span id="showcase-position">01 / 04</span>
+            </div>
+            <dl class="showcase-stats" aria-label="Code Clash event statistics">
+              <div><dt>Registered</dt><dd>85</dd></div>
+              <div><dt>Qualifying projects</dt><dd>13</dd></div>
+              <div><dt>Winners</dt><dd>4</dd></div>
+            </dl>
+            <p class="showcase-eyebrow" id="showcase-award">1st Place Creation</p>
+            <h2 id="showcase-title">CareVault</h2>
+            <p class="showcase-team" id="showcase-team">Team Hermes</p>
+            <p class="showcase-description" id="showcase-description">Keeps health records together, estimates visit costs, and explains paperwork in plain language.</p>
+            <div class="showcase-actions">
+              <button id="showcase-previous" type="button" aria-label="Show previous project">&#8592;</button>
+              <div id="showcase-dots" aria-label="Project 1 of 4"></div>
+              <button id="showcase-next" type="button" aria-label="Show next project">&#8594;</button>
+            </div>
+            <a href="https://code-clash.devpost.com/project-gallery" target="_blank" rel="noopener noreferrer">View all projects on Devpost <span aria-hidden="true">&#8599;</span></a>
+          </div>
+          <div class="showcase-visual" aria-live="polite">
+            <p class="showcase-outline" aria-hidden="true"><span>Project</span><span>Showcase</span></p>
+            <div class="showcase-image-frame">
+              <img id="showcase-image" src="assets/project-showcase/carevault.jpg?v=20261115" alt="CareVault project screenshot" />
+              <div class="showcase-image-fallback" id="showcase-image-fallback" hidden>
+                <span id="showcase-fallback-mark">CV</span>
+                <strong id="showcase-fallback-title">CareVault</strong>
+                <small>Project image coming soon</small>
+              </div>
+            </div>
+            <p class="showcase-caption"><span id="showcase-caption-award">First place</span><strong id="showcase-caption-title">CareVault</strong></p>
+          </div>
+          <button class="close-showcase" id="close-project-showcase" type="button" aria-label="Return to the Code Clash cover"><span aria-hidden="true">&#8592;</span> Back to cover</button>
+        </section>
       </section>
 
       <section class="intro-panel reveal" id="about">
@@ -307,7 +340,7 @@
             inert
           >
             <div class="team-queue" id="team-queue" aria-live="polite" aria-busy="true">
-              <div class="team-queue-state"><strong>Loading assembled teams…</strong><span>Only organizer-approved teams appear here.</span></div>
+              <div class="team-queue-state"><strong>Loading qualifying teams…</strong><span>Only teams with qualifying final submissions appear here.</span></div>
             </div>
           </div>
         </div>
