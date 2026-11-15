@@ -960,11 +960,11 @@ nav a { font-size: .8rem; font-weight: 900; text-decoration: none; text-transfor
 .project-showcase.is-changing .showcase-caption { animation: showcase-copy-swap .34s .08s ease-out both; }
 .showcase-copy-topline { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 11px; border-bottom: 2px solid var(--tu-gold); font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .showcase-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 18px 0 0; border-block: 1px solid rgba(255,255,255,.24); }
-.showcase-stats div { display: flex; min-width: 0; flex-direction: column; padding: 15px 12px 14px; border-right: 1px solid rgba(255,255,255,.28); }
+.showcase-stats div { display: flex; min-width: 0; overflow: hidden; flex-direction: column; padding: 15px 7px 14px; border-right: 1px solid rgba(255,255,255,.28); }
 .showcase-stats div:first-child { padding-left: 0; }
 .showcase-stats div:last-child { padding-right: 0; border-right: 0; }
 .showcase-stats dd { order: -1; margin: 0 0 6px; color: var(--tu-gold); font-size: 2.2rem; font-style: italic; font-weight: 900; line-height: .86; text-shadow: 2px 2px 0 rgba(0,0,0,.75); }
-.showcase-stats dt { color: var(--tu-white); font-size: .76rem; font-weight: 900; letter-spacing: .02em; line-height: 1.14; text-transform: uppercase; }
+.showcase-stats dt { max-width: 100%; color: var(--tu-white); font-size: clamp(.58rem, .85vw, .72rem); font-weight: 900; letter-spacing: 0; line-height: 1.14; text-transform: uppercase; }
 .showcase-eyebrow { margin: auto 0 8px; color: var(--tu-gold); font-size: .68rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
 .showcase-copy h2 { max-width: 100%; margin: 0 0 14px; color: var(--tu-white); font-size: clamp(2.15rem, 4.7vw, 4.9rem); font-style: normal; letter-spacing: -.055em; line-height: .9; overflow-wrap: anywhere; text-transform: none; }
 .showcase-team { margin: 0 0 8px; color: var(--tu-gold); font-size: .68rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
