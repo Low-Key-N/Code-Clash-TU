@@ -34,39 +34,109 @@ window.addEventListener("resize", () => {
   if (window.innerWidth > 860) closeMenu();
 });
 
-const eventStart = new Date("2026-11-14T09:00:00-05:00");
-const countdown = document.querySelector(".countdown");
-const countdownFields = {
-  days: document.querySelector("#countdown-days"),
-  hours: document.querySelector("#countdown-hours"),
-  minutes: document.querySelector("#countdown-minutes"),
-  seconds: document.querySelector("#countdown-seconds"),
+// Replace the two placeholder strings on each entry when official project and team names are available.
+const clashWinners = [
+  { award: "1st Place Prize", name: "CareVault", project: "Health care without the guesswork." },
+  { award: "AI & Data Track", name: "Somewhat Simple Activity Log", project: "A clearer view of every game and hour played." },
+  { award: "Cybersecurity & Privacy", name: "SafeHire", project: "The Cybersecurity & Privacy Track winning creation." },
+  { award: "Community & Social Impact", name: "Freshstart", project: "A winning creation focused on positive community impact." },
+];
+
+const clashProjects = [
+  { award: "1st Place Creation", name: "CareVault", project: "Keeps health records together, estimates visit costs, and explains paperwork in plain language." },
+  { award: "AI & Data Creation", name: "Somewhat Simple Activity Log", project: "A Nintendo Switch activity tracker that ranks games by total playtime." },
+  { award: "Cybersecurity & Privacy", name: "SafeHire", project: "The Cybersecurity & Privacy Track winning creation." },
+  { award: "Community & Social Impact", name: "Freshstart", project: "The Community & Social Impact Track winning creation." },
+];
+
+const spotlightModes = {
+  winners: { kicker: "Winner spotlight", itemName: "winner", items: clashWinners },
+  projects: { kicker: "Project showcase", itemName: "project", items: clashProjects, link: true },
 };
 
-function updateCountdown() {
-  const remaining = eventStart.getTime() - Date.now();
+const winnerSlide = document.querySelector(".winner-slide");
+const winnerKicker = document.querySelector("#winner-spotlight-title");
+const winnerAward = document.querySelector("#spotlight-label");
+const winnerName = document.querySelector("#spotlight-title");
+const winnerProject = document.querySelector("#spotlight-copy");
+const winnerPosition = document.querySelector("#spotlight-position");
+const winnerDots = document.querySelector("#spotlight-dots");
+const winnerPrevious = document.querySelector("#spotlight-previous");
+const winnerNext = document.querySelector("#spotlight-next");
+const spotlightGalleryLink = document.querySelector("#spotlight-gallery-link");
+const spotlightTabs = [...document.querySelectorAll("[data-spotlight-mode]")];
+let activeSpotlightMode = "winners";
+let activeWinner = 0;
+let winnerInterval;
 
-  if (remaining <= 0) {
-    const liveMessage = document.createElement("small");
-    liveMessage.textContent = "The clash is live!";
-    countdown.replaceChildren(liveMessage);
-    return false;
-  }
+let winnerDotItems = [];
 
-  const totalSeconds = Math.floor(remaining / 1000);
-  countdownFields.days.textContent = String(Math.floor(totalSeconds / 86400)).padStart(3, "0");
-  countdownFields.hours.textContent = String(Math.floor((totalSeconds % 86400) / 3600)).padStart(2, "0");
-  countdownFields.minutes.textContent = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
-  countdownFields.seconds.textContent = String(totalSeconds % 60).padStart(2, "0");
-  return true;
+function makeSpotlightDots(items) {
+  winnerDotItems = items.map(() => {
+    const dot = document.createElement("span");
+    dot.setAttribute("aria-hidden", "true");
+    return dot;
+  });
+  winnerDots.replaceChildren(...winnerDotItems);
 }
 
-updateCountdown();
-const countdownInterval = window.setInterval(() => {
-  if (!updateCountdown()) {
-    window.clearInterval(countdownInterval);
+function showWinner(index, animate = true) {
+  const mode = spotlightModes[activeSpotlightMode];
+  activeWinner = (index + mode.items.length) % mode.items.length;
+  const winner = mode.items[activeWinner];
+  winnerAward.textContent = winner.award;
+  winnerName.textContent = winner.name;
+  winnerProject.textContent = winner.project;
+  winnerPosition.textContent = `${String(activeWinner + 1).padStart(2, "0")} / ${String(mode.items.length).padStart(2, "0")}`;
+  winnerDots.setAttribute("aria-label", `${mode.itemName} ${activeWinner + 1} of ${mode.items.length}`);
+  winnerPrevious.setAttribute("aria-label", `Show previous ${mode.itemName}`);
+  winnerNext.setAttribute("aria-label", `Show next ${mode.itemName}`);
+  winnerDotItems.forEach((dot, dotIndex) => dot.classList.toggle("is-active", dotIndex === activeWinner));
+  if (animate && !prefersReducedMotion.matches) {
+    winnerSlide.classList.remove("is-changing");
+    void winnerSlide.offsetWidth;
+    winnerSlide.classList.add("is-changing");
   }
-}, 1000);
+}
+
+function startWinnerCycle() {
+  window.clearInterval(winnerInterval);
+  if (!prefersReducedMotion.matches) winnerInterval = window.setInterval(() => showWinner(activeWinner + 1), 5000);
+}
+
+function setSpotlightMode(modeName) {
+  activeSpotlightMode = modeName;
+  activeWinner = 0;
+  const mode = spotlightModes[modeName];
+  winnerKicker.textContent = mode.kicker;
+  spotlightGalleryLink.hidden = !mode.link;
+  makeSpotlightDots(mode.items);
+  spotlightTabs.forEach((tab) => {
+    const active = tab.dataset.spotlightMode === modeName;
+    tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+  });
+  winnerSlide.setAttribute("aria-labelledby", `${modeName}-view-tab`);
+  showWinner(0);
+  startWinnerCycle();
+}
+
+spotlightTabs.forEach((tab, tabIndex) => {
+  tab.addEventListener("click", () => setSpotlightMode(tab.dataset.spotlightMode));
+  tab.addEventListener("keydown", (event) => {
+    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    const direction = event.key === 'ArrowRight' ? 1 : -1;
+    const nextTab = spotlightTabs[(tabIndex + direction + spotlightTabs.length) % spotlightTabs.length];
+    nextTab.focus();
+    setSpotlightMode(nextTab.dataset.spotlightMode);
+  });
+});
+winnerPrevious.addEventListener("click", () => { showWinner(activeWinner - 1); startWinnerCycle(); });
+winnerNext.addEventListener("click", () => { showWinner(activeWinner + 1); startWinnerCycle(); });
+makeSpotlightDots(spotlightModes.winners.items);
+showWinner(0, false);
+startWinnerCycle();
 
 const revealObserver = new IntersectionObserver(
   (entries) => {
@@ -591,6 +661,6 @@ if (applicationForm && window.SUPABASE_CONFIG?.registrationOpen) {
 
 if (applicationForm && !window.SUPABASE_CONFIG?.registrationOpen) {
   applicationForm.hidden = true;
-  document.querySelector("#registration-title").textContent = "Thanks for applying!";
-  document.querySelector("#registration-copy").textContent = "Registration for CLASH #001 is closed. Thank you to everyone who applied—organizers are reviewing submissions now.";
+  document.querySelector("#registration-title").textContent = "That's a wrap!";
+  document.querySelector("#registration-copy").textContent = "CLASH #001 concluded on November 14, 2026. Thank you to everyone who built, mentored, volunteered, and cheered teams on.";
 }

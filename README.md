@@ -8,7 +8,7 @@ A website for CODE/CLASH, a proposed 12-hour student hackathon presented by Bit 
 
 ## Features
 
-- Responsive, comic-inspired design and event countdown
+- Responsive, comic-inspired design with rotating winner and project spotlights
 - Event information, participant roles, schedule, and FAQ
 - Application form and public team board
 - Organizer dashboard for application review and team management
@@ -29,7 +29,7 @@ Open [localhost:8000](http://localhost:8000/).
 
 ## Status
 
-Registration is closed. Event dates, venue, and programming remain subject to approval and change.
+CLASH #001 concluded on November 14, 2026.
 
 ## Credits
 

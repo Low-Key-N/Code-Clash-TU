@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Code Clash is a free, beginner-friendly 12-hour hackathon for Towson University (TU) students in Towson, Maryland. Join us November 14, 2026."
+      content="Code Clash was a free, beginner-friendly 12-hour hackathon for Towson University (TU) students, held November 14, 2026, in Towson, Maryland."
     />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://codeclashtu.com/" />
@@ -19,7 +19,7 @@
     <meta property="og:title" content="Towson University Hackathon 2026 | Code Clash" />
     <meta
       property="og:description"
-      content="Code Clash is a free, beginner-friendly 12-hour hackathon for Towson University (TU) students in Towson, Maryland. Join us November 14, 2026."
+      content="Code Clash was a free, beginner-friendly 12-hour hackathon for Towson University (TU) students, held November 14, 2026, in Towson, Maryland."
     />
     <meta property="og:url" content="https://codeclashtu.com/" />
     <meta property="og:image" content="https://codeclashtu.com/assets/pixel-city-evening.png" />
@@ -33,7 +33,7 @@
     <meta name="twitter:title" content="Towson University Hackathon 2026 | Code Clash" />
     <meta
       name="twitter:description"
-      content="Code Clash is a free, beginner-friendly 12-hour hackathon for Towson University (TU) students in Towson, Maryland. Join us November 14, 2026."
+      content="Code Clash was a free, beginner-friendly 12-hour hackathon for Towson University (TU) students, held November 14, 2026, in Towson, Maryland."
     />
     <meta name="twitter:image" content="https://codeclashtu.com/assets/pixel-city-evening.png" />
     <meta
@@ -42,9 +42,9 @@
     />
     <title>Towson University Hackathon 2026 | Code Clash</title>
     <link rel="icon" type="image/png" href="assets/code-clash-clock-tower.png" />
-    <link rel="stylesheet" href="styles.css?v=20261113-1" />
+    <link rel="stylesheet" href="styles.css?v=20261115-2" />
     <script src="supabase-config.js?v=20261019-1"></script>
-    <script src="script.js?v=20261113-1" defer></script>
+    <script src="script.js?v=20261115-6" defer></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -54,6 +54,7 @@
         "description": "A free, beginner-friendly 12-hour hackathon for Towson University students in Towson, Maryland, organized by Bit Brothers. Students build projects, learn coding skills, and collaborate with mentors.",
         "startDate": "2026-11-14T09:00:00-05:00",
         "endDate": "2026-11-14T21:30:00-05:00",
+        "eventStatus": "https://schema.org/EventCompleted",
         "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
         "location": {
           "@type": "Place",
@@ -108,7 +109,7 @@
         <a class="devpost-tab" href="https://devpost.com/" target="_blank" rel="noopener noreferrer" hidden>
           Devpost <span aria-hidden="true">↗</span>
         </a>
-        <a class="nav-cta" href="#register">Join the clash!</a>
+        <a class="nav-cta" href="#winners">See the winners</a>
       </nav>
     </header>
 
@@ -141,23 +142,34 @@
           <p class="kicker">Bit Brothers Presents</p>
           <h1>Code/Clash</h1>
           <p class="cover-tagline">Ideas assemble!</p>
-          <div class="event-cta" role="group" aria-label="Registration closed for November 14, 2026">
-            <a href="#register">Registration closed</a>
+          <div class="event-cta" role="group" aria-label="Code Clash concluded November 14, 2026">
+            <span class="event-status">Clash complete</span>
             <strong>November 14, 2026</strong>
-            <div class="countdown" role="timer" aria-label="Countdown to Code Clash" aria-live="off">
-              <small>Clash begins in</small>
-              <div class="countdown-units">
-                <p><b id="countdown-days">000</b><em>Days</em></p>
-                <i>:</i>
-                <p><b id="countdown-hours">00</b><em>Hrs</em></p>
-                <i>:</i>
-                <p><b id="countdown-minutes">00</b><em>Min</em></p>
-                <i>:</i>
-                <p><b id="countdown-seconds">00</b><em>Sec</em></p>
-              </div>
-            </div>
+            <small class="event-finale">Ideas built. Projects shipped. Winners crowned.</small>
           </div>
         </div>
+        <aside class="winner-spotlight" id="winners" aria-labelledby="winner-spotlight-title">
+          <div class="winner-spotlight-topline">
+            <span>Clash #001</span>
+            <span id="spotlight-position">01 / 04</span>
+          </div>
+          <div class="spotlight-tabs" role="tablist" aria-label="Code Clash highlights">
+            <button id="winners-view-tab" type="button" role="tab" aria-selected="true" aria-controls="spotlight-slide" data-spotlight-mode="winners">Winners</button>
+            <button id="projects-view-tab" type="button" role="tab" aria-selected="false" aria-controls="spotlight-slide" data-spotlight-mode="projects" tabindex="-1">Projects</button>
+          </div>
+          <p class="winner-kicker" id="winner-spotlight-title">Winner spotlight</p>
+          <div class="winner-slide" id="spotlight-slide" role="tabpanel" aria-labelledby="winners-view-tab" aria-live="polite" aria-atomic="true">
+            <p id="spotlight-label">1st Place Prize</p>
+            <h2 id="spotlight-title">CareVault</h2>
+            <p id="spotlight-copy">Health care without the guesswork.</p>
+          </div>
+          <a class="spotlight-gallery-link" id="spotlight-gallery-link" href="https://code-clash.devpost.com/project-gallery" target="_blank" rel="noopener noreferrer" hidden>View every project on Devpost <span aria-hidden="true">&#8599;</span></a>
+          <div class="winner-controls">
+            <button id="spotlight-previous" type="button" aria-label="Show previous winner">&#8592;</button>
+            <div id="spotlight-dots" aria-label="Winner 1 of 4"></div>
+            <button id="spotlight-next" type="button" aria-label="Show next winner">&#8594;</button>
+          </div>
+        </aside>
       </section>
 
       <section class="intro-panel reveal" id="about">
@@ -170,17 +182,17 @@
           <div class="origin-copy">
             <p>
               Organized by Bit Brothers, Code/Clash (Code Clash)
-              is a free, 12-hour hackathon for Towson University (TU) students in
+              was a free, 12-hour hackathon for Towson University (TU) students in
               Towson, Maryland. Come together to explore coding, learn new
               skills, and turn ambitious ideas into working projects. Build
               alongside mentors and fellow creators, sharpen your skills, and
               take a project from first sketch to final demo.
             </p>
             <p>
-              Whether you are a seasoned hacker or opening your editor for the
-              first time, this beginner-friendly student hackathon has a role
-              and a team for you. Join us November
-              14, 2026, on the Towson University campus.
+              Whether participants were seasoned hackers or opening an editor
+              for the first time, this beginner-friendly student hackathon had
+              a role and a team for everyone. The inaugural clash took place
+              November 14, 2026, on the Towson University campus.
             </p>
           </div>
           <div class="speech-bubble">
@@ -386,7 +398,7 @@
         </div>
         <div class="bubble-grid">
           <article class="question-bubble reveal"><h3>What is Code Clash?</h3><p>Code Clash is a 12-hour student hackathon at Towson University. Work with a team to turn an idea into a working project, with workshops and mentors to help along the way.</p></article>
-          <article class="question-bubble reveal"><h3>When and where is the hackathon?</h3><p>Code Clash takes place November 14, 2026, on the Towson University campus in Towson, Maryland.</p></article>
+          <article class="question-bubble reveal"><h3>When and where was the hackathon?</h3><p>Code Clash took place November 14, 2026, on the Towson University campus in Towson, Maryland.</p></article>
           <article class="question-bubble reveal"><h3>Is Code Clash free?</h3><p>Yes. Entry to the Code Clash hackathon is free.</p></article>
           <article class="question-bubble reveal"><h3>Do I need a team?</h3><p>No. Come solo and we will help you meet collaborators.</p></article>
           <article class="question-bubble reveal"><h3>Do I need coding experience?</h3><p>No. This beginner-friendly hackathon welcomes first-time participants as well as experienced coders. Workshops and mentors will help you get moving.</p></article>
@@ -561,8 +573,8 @@
       <section class="register-section reveal" id="register">
         <span class="mini-burst">APPLICATIONS CLOSED</span>
         <p class="eyebrow">November 14, 2026</p>
-        <h2 id="registration-title">Thanks for applying!</h2>
-        <p id="registration-copy">Registration for CLASH #001 is closed. Thank you to everyone who applied&mdash;organizers are reviewing submissions now.</p>
+        <h2 id="registration-title">That's a wrap!</h2>
+        <p id="registration-copy">CLASH #001 concluded on November 14, 2026. Thank you to everyone who built, mentored, volunteered, and cheered teams on.</p>
         <!-- Keep the complete form in the page for the next registration cycle; the registrationOpen flag controls its visibility. -->
         <form class="application-form" id="application-form" novalidate hidden>
           <p class="testing-notice" id="testing-notice" hidden><strong>TEST MODE:</strong> Submissions are for testing only and do not count as official event applications.</p>
