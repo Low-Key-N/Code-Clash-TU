@@ -2017,6 +2017,18 @@ footer p { margin: 0; }
   .community-partner-card h3 { font-size: .92rem; }
 }
 
+@media (max-width: 720px) and (orientation: portrait) {
+  .showcase-outline {
+    z-index: 4;
+    top: 12px;
+    right: 92px;
+    left: 14px;
+    font-size: clamp(2rem, 8.5vw, 2.35rem);
+    line-height: .84;
+  }
+  .showcase-outline span { transform: scaleX(.72); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .site-header nav { transition: none; }
   .hero-partner:hover { transform: rotate(3deg); }
